@@ -404,7 +404,7 @@ export async function transcribeShoppingAudio(
           role: "user",
           parts: [
             {
-              text: "Transcribe this short shopping voice note exactly. The speaker may use Urdu, Roman Urdu, or English. Preserve the spoken language and script; return only the transcript, with no commentary.",
+              text: "Transcribe this shopping or shop-inventory voice note exactly. The speaker may use Urdu, Roman Urdu, or English, including product names, pack sizes, quantities, and prices in PKR. Preserve the spoken language and script; return only the transcript, with no commentary.",
             },
             { inlineData: { mimeType, data: audioBase64 } },
           ],
@@ -436,7 +436,7 @@ export async function transcribeShoppingAudio(
         );
         form.set(
           "prompt",
-          "Transcribe exactly in the language and script spoken. The voice note may contain Urdu, Roman Urdu, or English. Do not translate or add words.",
+          "Transcribe shopping requests and shop-inventory changes exactly in the spoken language and script (Urdu, Roman Urdu, or English). Preserve product names, quantities, units, and prices; do not translate or add words.",
         );
         form.set("response_format", "json");
         form.set("temperature", "0");
