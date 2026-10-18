@@ -433,6 +433,9 @@ function Dashboard({
   const [merchantInstruction, setMerchantInstruction] = useState('');
   const [merchantPreview, setMerchantPreview] = useState<any>(null);
   const [merchantReply, setMerchantReply] = useState('');
+  const [merchantAssistantError, setMerchantAssistantError] = useState('');
+  const [merchantVoiceReview, setMerchantVoiceReview] = useState(false);
+  const [merchantConfirmBusy, setMerchantConfirmBusy] = useState(false);
   const [adminMessage, setAdminMessage] = useState('');
   const [dialog, setDialog] = useState<{ title: string; message: string } | null>(null);
   const [busyOrderActions, setBusyOrderActions] = useState<Record<string, boolean>>({});
@@ -549,6 +552,7 @@ function Dashboard({
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [recording, setRecording] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
+  const recordingTarget = useRef<'customer' | 'merchant' | null>(null);
 
   useEffect(() => {
     if (profile.role !== 'customer') return;
@@ -791,22 +795,27 @@ function Dashboard({
       }]);
     }
   };
-  const startRecording = async () => {
+  const startRecording = async (target: 'customer' | 'merchant') => {
+    if (recording || voiceBusy) return;
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
-        showDialog('Microphone permission needed', 'Allow microphone access to record a short shopping note.');
+        showDialog('Microphone permission needed', 'Allow microphone access to record a voice instruction.');
         return;
       }
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
+      recordingTarget.current = target;
       recorder.record({ forDuration: 45 });
       setRecording(true);
     } catch {
-      showDialog('Could not start recording', 'Try typing your shopping request instead.');
+      recordingTarget.current = null;
+      showDialog('Could not start recording', 'Try typing your instruction instead.');
     }
   };
   const stopAndTranscribe = async () => {
+    if (!recording || voiceBusy) return;
+    const target = recordingTarget.current;
     setVoiceBusy(true);
     setRecording(false);
     let recordingUri: string | null = null;
@@ -831,12 +840,21 @@ function Dashboard({
       }
       const mimeType = Platform.OS === 'web' ? 'audio/webm' : 'audio/mp4';
       const result = await transcribe.mutateAsync({ data: { audioBase64, mimeType } });
-      setDraft(result.text);
-      setVoiceReview(true);
+      if (target === 'merchant') {
+        setMerchantInstruction(result.text);
+        setMerchantVoiceReview(true);
+        setMerchantPreview(null);
+        setMerchantReply('');
+        setMerchantAssistantError('');
+      } else {
+        setDraft(result.text);
+        setVoiceReview(true);
+      }
     } catch (reason) {
       showDialog('Transcription unavailable', errorMessage(reason, 'Please type your request instead.'));
     } finally {
       if (recordingUri) await FileSystem.deleteAsync(recordingUri, { idempotent: true }).catch(() => {});
+      recordingTarget.current = null;
       setVoiceBusy(false);
     }
   };
@@ -963,22 +981,42 @@ function Dashboard({
       showDialog('Product not saved', errorMessage(reason, 'Check your shop status and try again.'));
     }
   };
+  const onMerchantInstructionChange = (value: string) => {
+    setMerchantInstruction(value);
+    setMerchantVoiceReview(false);
+    // Editing an instruction invalidates any proposal based on its previous text.
+    setMerchantPreview(null);
+    setMerchantReply('');
+    setMerchantAssistantError('');
+  };
   const askMerchantAssistant = async () => {
-    if (!merchantInstruction.trim()) return;
+    if (!merchantInstruction.trim() || merchantAssistant.isPending || merchantConfirmBusy ||
+      voiceBusy || recording) return;
+    setMerchantAssistantError('');
     setMerchantReply('');
     setMerchantPreview(null);
     try {
       const result = await merchantAssistant.mutateAsync({ data: { instruction: merchantInstruction.trim() } });
       setMerchantReply(result.reply);
       setMerchantPreview({ action: result.action, ...result.preview });
-      setMerchantInstruction('');
+      setMerchantVoiceReview(false);
+      // Keep the original instruction so the merchant can refine it after clarification.
     } catch (reason) {
-      setMerchantReply(errorMessage(reason, 'The assistant is busy. Use the product form below.'));
+      setMerchantAssistantError(errorMessage(reason, 'The inventory assistant is busy. Use the product form below.'));
     }
+  };
+  const cancelMerchantPreview = () => {
+    if (merchantConfirmBusy) return;
+    setMerchantPreview(null);
+    setMerchantReply('');
+    setMerchantAssistantError('');
+    // The instruction stays available for editing; no product data is changed.
   };
   const confirmMerchantPreview = async () => {
     const preview = merchantPreview;
-    if (!preview || preview.action === 'clarify') return;
+    if (!preview || preview.action === 'clarify' || merchantConfirmBusy) return;
+    setMerchantConfirmBusy(true);
+    setMerchantAssistantError('');
     try {
       if (preview.action === 'delete') {
         await deleteProduct.mutateAsync({ productId: preview.productId });
@@ -996,11 +1034,20 @@ function Dashboard({
           await createProduct.mutateAsync({ data });
         }
       }
+      // Clear a confirmed proposal immediately to prevent double submissions.
       setMerchantPreview(null);
+      setMerchantInstruction('');
+      setMerchantVoiceReview(false);
       setMerchantReply('Done. Your inventory has been updated.');
-      await refreshInventory();
+      try {
+        await refreshInventory();
+      } catch {
+        setMerchantAssistantError('Change saved, but the inventory list could not refresh. Reopen this screen to see the latest stock.');
+      }
     } catch (reason) {
-      setMerchantReply(errorMessage(reason, 'That change was not saved. Review the product details.'));
+      setMerchantAssistantError(errorMessage(reason, 'That change was not saved. Review the product details and try again.'));
+    } finally {
+      setMerchantConfirmBusy(false);
     }
   };
   const editProduct = (product: ProductItem) => {
@@ -1155,7 +1202,7 @@ function Dashboard({
               voiceBusy={voiceBusy || transcribe.isPending}
               onLocation={updateLocation}
               onSend={sendShoppingRequest}
-              onStartVoice={startRecording}
+              onStartVoice={() => { void startRecording('customer'); }}
               onStopVoice={stopAndTranscribe}
               addProduct={addProduct}
               assistantBusy={assistant.isPending}
@@ -1223,12 +1270,20 @@ function Dashboard({
               onClearForm={clearProductForm}
               savingProduct={createProduct.isPending || updateProduct.isPending}
               instruction={merchantInstruction}
-              setInstruction={setMerchantInstruction}
+              setInstruction={onMerchantInstructionChange}
               onAskAssistant={askMerchantAssistant}
               assistantBusy={merchantAssistant.isPending}
               assistantReply={merchantReply}
+              assistantError={merchantAssistantError}
+              recording={recording && recordingTarget.current === 'merchant'}
+              voiceBusy={voiceBusy && recordingTarget.current === 'merchant'}
+              voiceReview={merchantVoiceReview}
+              onStartVoice={() => { void startRecording('merchant'); }}
+              onStopVoice={stopAndTranscribe}
               preview={merchantPreview}
+              confirmBusy={merchantConfirmBusy}
               onConfirmPreview={confirmMerchantPreview}
+              onCancelPreview={cancelMerchantPreview}
             />
           ) : section === 'profile' && (profile.role === 'customer' || profile.role === 'merchant') ? (
             <ProfileChangeRequestsView profile={profile}>
