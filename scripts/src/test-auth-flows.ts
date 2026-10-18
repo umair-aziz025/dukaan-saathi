@@ -6,7 +6,8 @@ const firebaseProjectId = "dukaan-saathi-18899";
 const credentialsFilePath = fileURLToPath(
   new URL("../../generated-artifacts/demo-account-passwords.json", import.meta.url),
 );
-const emailDeliveryTestAccount = "ddmcbaba69@gmail.com";
+// Optional real mailbox, explicitly provided by the operator. Never send to example.com placeholders.
+const emailDeliveryTestAccount = process.env.DEMO_EMAIL_CANARY_ACCOUNT?.trim().toLowerCase();
 let currentStep = "starting";
 let failureStep: string | null = null;
 
@@ -79,11 +80,17 @@ async function run() {
   }
 
   const sendEmailCanary = process.argv.includes("--send-email-canary");
-  if (
-    sendEmailCanary &&
-    !credentials.accounts.some((account) => account.email === emailDeliveryTestAccount)
-  ) {
-    throw new Error("The email delivery test account is missing from the credential export.");
+  if (sendEmailCanary) {
+    if (!emailDeliveryTestAccount ||
+      emailDeliveryTestAccount.endsWith("@example.com") ||
+      !credentials.accounts.some((account) => account.email.toLowerCase() === emailDeliveryTestAccount)
+    ) {
+      throw new Error(
+        "Email canary requires DEMO_EMAIL_CANARY_ACCOUNT set to an owned, deliverable " +
+        "mailbox already present in the private credential export. Reserved example.com " +
+        "demo addresses cannot receive mail.",
+      );
+    }
   }
 
   const auth = getFirebaseAdminAuth();
