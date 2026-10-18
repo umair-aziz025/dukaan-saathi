@@ -16,7 +16,7 @@ A neighborhood shopping app where customers discover local shops, merchants mana
 - pnpm workspace, Expo / React Native, TypeScript, Express.
 - Firebase Authentication for accounts and ID tokens.
 - Cloud Firestore through Firebase Admin SDK in the API and shared database package.
-- Gemini 3.8 Flash is primary, with Gemini 3.7 Flash as a fallback for the app's AI routes.
+- Gemini 3.8 Flash is primary for the app's AI routes; Groq is the fallback for text and Whisper transcription. xAI is an optional final text-only fallback when `XAI_API_KEY` is configured.
 
 ## Architecture rules
 
@@ -29,9 +29,9 @@ A neighborhood shopping app where customers discover local shops, merchants mana
 
 ## Firebase configuration
 
-- Replit Secrets: `FIREBASE_SERVICE_ACCOUNT_JSON`, `SESSION_SECRET`, and `EXPO_PUBLIC_FIREBASE_API_KEY`.
+- Replit Secrets: `FIREBASE_SERVICE_ACCOUNT_JSON`, `SESSION_SECRET`, `EXPO_PUBLIC_FIREBASE_API_KEY`, `GEMINI_API_KEY`, and `GROQ_API_KEY`.
 - Shared environment: `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`, `EXPO_PUBLIC_FIREBASE_PROJECT_ID`, `EXPO_PUBLIC_FIREBASE_APP_ID`, and `ADMIN_EMAILS`.
-- `GEMINI_API_KEY` is required only for Gemini-powered routes.
+- `XAI_API_KEY` is optional and enables the final text-assistant fallback. Missing fallback keys disable only that provider.
 - See `docs/firestore-setup.md` for Firebase Console setup, email/password login, reset, and verification steps.
 
 ## Source map

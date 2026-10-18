@@ -9,9 +9,17 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
-import { GoogleGenAI } from "@google/genai";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
+import {
+  inventoryAssistantOutputSchema,
+  shoppingAssistantOutputSchema,
+} from "../lib/assistant-schemas";
+import {
+  generateStructuredResponse,
+  transcribeShoppingAudio,
+  type AiProviderFailure,
+} from "../lib/ai-providers";
 import {
   createOrderWithStock,
   createProfileChangeRequest,
@@ -246,6 +254,17 @@ const transcriptionInput = z.object({
   mimeType: z.enum(["audio/mp4", "audio/m4a", "audio/webm", "audio/wav"]),
 }).strict();
 
+function logAiProviderFailure(
+  req: Request,
+  failure: AiProviderFailure,
+) {
+  req.log.warn({
+    provider: failure.provider,
+    reason: failure.reason,
+    ...(failure.statusCode === undefined ? {} : { statusCode: failure.statusCode }),
+  }, "Saathi AI provider attempt failed");
+}
+
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = req.header("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) {
@@ -477,75 +496,6 @@ function safeAiText(value: string) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ")
     .trim()
     .slice(0, 1200);
-}
-
-const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.7-flash"] as const;
-
-function gemini() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Saathi AI is temporarily unavailable.");
-  return new GoogleGenAI({ apiKey });
-}
-
-function geminiStatusCode(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const candidate = error as { status?: unknown; statusCode?: unknown };
-  const status = candidate.status ?? candidate.statusCode;
-  return typeof status === "number" ? status : undefined;
-}
-
-function isGeminiRetryable(error: unknown): boolean {
-  const status = geminiStatusCode(error);
-  return status === undefined || [408, 429, 500, 502, 503, 504].includes(status);
-}
-
-async function withGeminiModelFallback<T>(
-  request: (client: GoogleGenAI, model: string) => Promise<T>,
-): Promise<T> {
-  const client = gemini();
-  let lastError: unknown;
-
-  for (const [modelIndex, model] of GEMINI_MODELS.entries()) {
-    const maxAttempts = modelIndex === 0 ? 2 : 1;
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      try {
-        return await request(client, model);
-      } catch (error) {
-        lastError = error;
-        const status = geminiStatusCode(error);
-        const modelUnavailable = status === 404;
-        if (!modelUnavailable && !isGeminiRetryable(error)) throw error;
-
-        if (isGeminiRetryable(error) && attempt + 1 < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, 300 * 2 ** attempt));
-          continue;
-        }
-        break;
-      }
-    }
-  }
-
-  if (lastError instanceof Error) throw lastError;
-  throw new Error("Gemini AI models are temporarily unavailable.");
-}
-
-async function createModelResponse(systemPrompt: string, userPrompt: string) {
-  const response = await withGeminiModelFallback((client, model) =>
-    client.models.generateContent({
-      model,
-      contents: userPrompt,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
-        maxOutputTokens: 1200,
-      },
-    }),
-  );
-  const parsed: unknown = JSON.parse(response.text ?? "{}");
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Gemini returned an invalid structured response.");
-  }
-  return parsed as Record<string, unknown>;
 }
 
 function profileDto(profile: AppUser, shopStatus: string | null) {
@@ -1251,35 +1201,34 @@ router.post("/dukaan/assistant", requireAuth, aiLimiter, async (req, res) => {
     stock: product.stock,
     shop: safeAiText(catalog.shops.find((shop) => shop.id === product.shopId)?.name ?? "Local shop").slice(0, 100),
   }));
+  const allowedProductIds = new Set(productContext.map((product) => product.id));
   const history = (parsed.data.history ?? []).slice(-4).map((entry) => ({
     role: entry.role,
     content: safeAiText(entry.content),
   }));
   try {
-    const result = await createModelResponse(
+    const result = await generateStructuredResponse(
       "You are Dukaan Saathi, a careful grocery shopping helper for Pakistan. Understand Urdu, Roman Urdu, and English. The only product facts you may use are in the supplied JSON catalogue. Do not invent products, prices, stock, addresses, or orders. Never place or confirm an order; the customer must review options and confirm separately. Return JSON with reply (short string), productIds (array of catalogue IDs), and needsClarification (boolean). If pack size or quantity is unclear, ask one concise follow-up and set needsClarification true.",
       JSON.stringify({ catalog: productContext, history, request: message }),
+      shoppingAssistantOutputSchema(allowedProductIds),
+      { onProviderFailure: (failure) => logAiProviderFailure(req, failure) },
     );
-    const ids = Array.isArray(result.productIds)
-      ? result.productIds.filter((id): id is string => typeof id === "string")
-      : [];
-    const allowedIds = new Set(catalog.products.map((product) => product.id));
-    const matches = catalog.products.filter((product) => ids.includes(product.id) && allowedIds.has(product.id));
+    const matches = catalog.products.filter((product) =>
+      result.value.productIds.includes(product.id) &&
+      allowedProductIds.has(product.id)
+    );
     const productsToShow = matches.length ? matches.slice(0, 12) : catalog.products.slice(0, 6);
     res.json({
-      reply: typeof result.reply === "string"
-        ? safeAiText(result.reply).slice(0, 600)
-        : "I found some nearby choices. Pick a shop and add the items you want.",
+      reply: safeAiText(result.value.reply).slice(0, 600),
       products: productsToShow,
-      needsClarification: Boolean(result.needsClarification),
+      needsClarification: result.value.needsClarification,
     });
   } catch (error) {
     req.log.warn({
       errorName: error instanceof Error ? error.name : "unknown",
-      statusCode: geminiStatusCode(error),
     }, "Saathi shopping assistant request failed");
     res.json({
-      reply: "Saathi is busy right now. Here are the closest products I could find; review them before adding anything.",
+      reply: "Saathi is temporarily unavailable. You can browse these nearby products and choose what you want; nothing has been added.",
       products: catalog.products.slice(0, 6),
       needsClarification: false,
     });
@@ -1304,18 +1253,16 @@ router.post("/dukaan/merchant-assistant", requireAuth, aiLimiter, async (req, re
     stock: product.stock,
     active: product.active,
   }));
+  const allowedProductIds = new Set(inventory.map((product) => product.id));
   try {
-    const result = await createModelResponse(
+    const result = await generateStructuredResponse(
       "You help a shopkeeper prepare a single inventory change. Understand Urdu, Roman Urdu, and English. Never modify data yourself. Return JSON with reply, action (create/update/delete/clarify), and preview (productId, name, category, unit, price, stock). For update/delete, use only an exact productId from the provided inventory. For delete, set action delete and include the productId. If a required field is unclear or the product match is uncertain, use action clarify and ask one question. Never invent IDs or infer prices/quantities that were not stated.",
       JSON.stringify({ inventory: context, instruction }),
+      inventoryAssistantOutputSchema(allowedProductIds),
+      { onProviderFailure: (failure) => logAiProviderFailure(req, failure) },
     );
-    const actions = new Set(["create", "update", "delete", "clarify"]);
-    const action = typeof result.action === "string" && actions.has(result.action)
-      ? result.action
-      : "clarify";
-    const preview = (result.preview && typeof result.preview === "object")
-      ? result.preview as Record<string, unknown>
-      : {};
+    const action = result.value.action;
+    const preview = result.value.preview;
     const existing = typeof preview.productId === "string"
       ? inventory.find((product) => product.id === preview.productId)
       : undefined;
@@ -1354,14 +1301,13 @@ router.post("/dukaan/merchant-assistant", requireAuth, aiLimiter, async (req, re
       return;
     }
     res.json({
-      reply: typeof result.reply === "string" ? safeAiText(result.reply).slice(0, 500) : "Review this proposed change before saving.",
+      reply: safeAiText(result.value.reply).slice(0, 500),
       action: safeAction,
       preview: normalizedPreview,
     });
   } catch (error) {
     req.log.warn({
       errorName: error instanceof Error ? error.name : "unknown",
-      statusCode: geminiStatusCode(error),
     }, "Saathi merchant assistant request failed");
     res.status(503).json({ error: "The inventory assistant is busy. You can still update products using the manual form." });
   }
@@ -1376,26 +1322,17 @@ router.post("/dukaan/transcribe", requireAuth, aiLimiter, async (req, res) => {
     res.status(403).json({ error: "Voice shopping is available to customer accounts." });
     return;
   }
+  res.setHeader("Cache-Control", "no-store");
   try {
-    const response = await withGeminiModelFallback((client, model) =>
-      client.models.generateContent({
-        model,
-        contents: [{
-          role: "user",
-          parts: [
-            { text: "Transcribe this grocery-shopping voice note exactly. The speaker may use Urdu, Roman Urdu, or English. Return only the transcript; do not add commentary." },
-            { inlineData: { mimeType: parsed.data.mimeType, data: parsed.data.audioBase64 } },
-          ],
-        }],
-        config: { maxOutputTokens: 512 },
-      }),
+    const result = await transcribeShoppingAudio(
+      parsed.data.audioBase64,
+      parsed.data.mimeType,
+      { onProviderFailure: (failure) => logAiProviderFailure(req, failure) },
     );
-    res.setHeader("Cache-Control", "no-store");
-    res.json({ text: safeAiText(response.text ?? "").slice(0, 1200) });
+    res.json({ text: safeAiText(result.value).slice(0, 1200) });
   } catch (error) {
     req.log.warn({
       errorName: error instanceof Error ? error.name : "unknown",
-      statusCode: geminiStatusCode(error),
     }, "Saathi voice transcription failed");
     res.status(503).json({ error: "Transcription is unavailable right now. You can type your request instead." });
   }

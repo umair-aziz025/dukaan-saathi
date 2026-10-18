@@ -1328,7 +1328,7 @@ function CustomerHome(props: {
       })
     : products;
   const visibleProducts = normalizedSearch || showAll ? filteredProducts : filteredProducts.slice(0, 6);
-  const audioCopy = 'Voice notes are sent to Gemini for transcription and are not saved by Saathi.';
+  const audioCopy = 'Voice notes use Gemini first and Groq as a fallback for transcription; audio is not saved by Saathi.';
   return (
     <>
       <Panel style={styles.heroPanel}>
