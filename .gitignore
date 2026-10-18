@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Locally generated demo credentials and other private exports
+/generated-artifacts/

@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Dukaan Saathi",
+    "slug": "dukaan-saathi",
+    "owner": "umair6172",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/dukaan-saathi-professional-logo.png",
+    "scheme": "dukaan-saathi",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Dukaan Saathi uses your location to find nearby shops and show directions.",
+        "NSMicrophoneUsageDescription": "Dukaan Saathi records a short voice note only when you tap the microphone."
+      }
+    },
+    "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/dukaan-saathi-professional-logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/dukaan-saathi-professional-logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F7F5EC"
+        }
+      ],
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-audio",
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Dukaan Saathi uses your location to find nearby shops and show directions."
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8fa6733c-6a76-485d-8d84-738d37a531d2"
+      }
+    }
+  }
+}

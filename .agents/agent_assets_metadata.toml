@@ -1,0 +1,17 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "akEEixLoBD_pDdRqiXZ_I"
+uri = "file://.local/conversation-workspace/files/docs/credits-out-handoff.txt"
+type = "text"
+title = "Credits-out handoff notes"
+description = "The imported notes from the prior Dukaan Saathi session, including what was in progress when the agent quota ran out."
+logical_id = "1ad6c410-262e-4802-9fcd-b979255a6f99"
+content_hash = "sha256:5d31ff042fda19a260c0d3c03e550c683abe3eef8c13f55f038e628267ea17c0"
+size = 44611
+mtime_ms = 1792152356000
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:18091014-90b8-43a7-b955-57c1e4f166d9/1ad6c410-262e-4802-9fcd-b979255a6f99/0bf2c5af-f814-47f8-ba47-c0a87392f5c7"
+storage_version_token = "1792160145249014"
+content_type = "text/plain"
+source_uri = "file://docs/credits-out-handoff.txt"
