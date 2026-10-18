@@ -8,7 +8,8 @@
       "distribution": "internal",
       "environment": "preview",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       },
       "env": {
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "dukaan-saathi-18899.firebaseapp.com",
