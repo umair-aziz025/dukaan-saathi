@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "640716425807",
+    "project_id": "dukaan-saathi-18899",
+    "storage_bucket": "dukaan-saathi-18899.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640716425807:android:436cf83589105ae5ba383a",
+        "android_client_info": {
+          "package_name": "com.dukaansaathi.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640716425807-9epcbc66ds2jhulaknkri8tolusnr8l7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXrEOXziCeDZ1TspVNTIjRdepNlY4eGEs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "640716425807-9epcbc66ds2jhulaknkri8tolusnr8l7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
