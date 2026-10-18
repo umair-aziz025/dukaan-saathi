@@ -1,0 +1,43 @@
+Continue work on the existing Dukaan Saathi Replit project. Do not create a new app or replace the current monorepo, Expo workflow, API server, or registered artifacts.
+
+Goal: Make the customer shopping assistant understand voice and text requests in Urdu, Roman Urdu, and English, and reliably suggest matching nearby products. Add server-side AI provider fallback so a temporary outage or rate limit from one provider does not break the experience.
+
+First inspect the current implementation. The app already has:
+- An Expo mobile app at artifacts/dukaan-saathi.
+- An API server at artifacts/api-server.
+- Customer voice recording and a transcription endpoint.
+- A customer shopping-assistant endpoint that uses the nearby product catalog.
+- Gemini model retry/fallback logic.
+Preserve existing UI, API contracts, authentication, and behavior unless a change is necessary for this feature. Avoid duplicating existing functionality.
+
+Implement provider routing separately for transcription and text/chat:
+
+1. Voice flow
+- Keep microphone recording in the Expo app and send audio only to the authenticated API.
+- Transcribe Urdu, Roman Urdu, and English using Gemini first, then try Groq Whisper if Gemini times out, is unavailable, rate-limited, or returns unusable output.
+- Do not send audio to a text-only model such as Grok. A fallback must support transcription.
+- Return the transcript for the customer to review and edit before it is submitted as a shopping request. Then pass it through the same shopping-assistant flow as typed text.
+- Do not save audio. Do not log audio, full transcripts, API keys, or unnecessary personal data.
+
+2. Text shopping-assistant flow
+- Use Gemini as the primary provider. Add Groq as a text-model fallback. Add xAI/Grok only as an optional provider when an XAI_API_KEY is configured; do not make the app depend on it being free or available.
+- Design provider adapters so more providers can be added without rewriting the route or Expo UI. Do not add every possible provider unless it can be implemented and tested cleanly.
+- Keep all provider calls on the API server. Never put AI provider keys in Expo client code or EXPO_PUBLIC variables.
+- Read credentials from server environment variables/Replit Secrets. Missing optional fallback credentials should disable that provider without breaking the primary one.
+- Set a short, explicit timeout for each provider. After a primary provider has failed or exceeded its timeout, proceed to the next configured provider without repeatedly retrying the same failed provider. Set a reasonable overall request deadline so customers are not left waiting indefinitely.
+- Fail over on timeouts, network errors, rate limits, provider outages, and invalid structured responses. Do not repeatedly retry invalid credentials or other permanent provider errors; log a redacted diagnostic and try the next configured provider.
+- Normalize and validate all providers’ output against the same schema before returning it to the app. Never trust provider output just because it is valid JSON.
+- If every provider fails, return a clear, friendly error and let customers browse/search products manually.
+
+3. Product and data safety
+- Use only product facts and product IDs supplied by the server’s current nearby catalog. Reject IDs not in that catalog.
+- Never invent products, prices, stock, shops, availability, or order details.
+- The assistant may suggest products but must not add items to the basket, place orders, confirm orders, or write to Firestore. The customer must choose products and explicitly proceed through the existing checkout flow.
+- Keep Firebase authentication and all Firestore reads/writes on the existing authenticated API/repository path. Do not add direct Firestore writes from the mobile app.
+- Do not send a customer’s precise location, account identifiers, or unnecessary catalog fields to AI providers. Preserve existing sensitive-data filtering.
+
+4. Verification
+- Keep the current mobile and API project structure and managed workflows intact.
+- Add or update tests for provider success, timeout/fallback, rate limits, invalid model output, absent optional keys, and all providers unavailable. Mock providers in tests; do not make paid live AI calls just to test fallback.
+- Verify the API and Expo app with the relevant typechecks/build commands and inspect workflow logs.
+- Report which providers were configured and tested. Do not claim an APK was produced unless an actual Android app build generated one.
