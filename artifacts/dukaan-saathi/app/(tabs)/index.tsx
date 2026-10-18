@@ -436,6 +436,7 @@ function Dashboard({
   const [merchantAssistantError, setMerchantAssistantError] = useState('');
   const [merchantVoiceReview, setMerchantVoiceReview] = useState(false);
   const [merchantConfirmBusy, setMerchantConfirmBusy] = useState(false);
+  const merchantRequestVersion = useRef(0);
   const [adminMessage, setAdminMessage] = useState('');
   const [dialog, setDialog] = useState<{ title: string; message: string } | null>(null);
   const [busyOrderActions, setBusyOrderActions] = useState<Record<string, boolean>>({});
@@ -841,6 +842,7 @@ function Dashboard({
       const mimeType = Platform.OS === 'web' ? 'audio/webm' : 'audio/mp4';
       const result = await transcribe.mutateAsync({ data: { audioBase64, mimeType } });
       if (target === 'merchant') {
+        merchantRequestVersion.current += 1;
         setMerchantInstruction(result.text);
         setMerchantVoiceReview(true);
         setMerchantPreview(null);
@@ -982,6 +984,7 @@ function Dashboard({
     }
   };
   const onMerchantInstructionChange = (value: string) => {
+    merchantRequestVersion.current += 1;
     setMerchantInstruction(value);
     setMerchantVoiceReview(false);
     // Editing an instruction invalidates any proposal based on its previous text.
@@ -995,18 +998,23 @@ function Dashboard({
     setMerchantAssistantError('');
     setMerchantReply('');
     setMerchantPreview(null);
+    const requestVersion = merchantRequestVersion.current;
     try {
       const result = await merchantAssistant.mutateAsync({ data: { instruction: merchantInstruction.trim() } });
+      if (requestVersion !== merchantRequestVersion.current) return;
       setMerchantReply(result.reply);
       setMerchantPreview({ action: result.action, ...result.preview });
       setMerchantVoiceReview(false);
       // Keep the original instruction so the merchant can refine it after clarification.
     } catch (reason) {
-      setMerchantAssistantError(errorMessage(reason, 'The inventory assistant is busy. Use the product form below.'));
+      if (requestVersion === merchantRequestVersion.current) {
+        setMerchantAssistantError(errorMessage(reason, 'The inventory assistant is busy. Use the product form below.'));
+      }
     }
   };
   const cancelMerchantPreview = () => {
     if (merchantConfirmBusy) return;
+    merchantRequestVersion.current += 1;
     setMerchantPreview(null);
     setMerchantReply('');
     setMerchantAssistantError('');
@@ -2226,7 +2234,7 @@ function MerchantView(props: {
         <Text style={[styles.smallText, { color: colors.mutedForeground }]}>Voice notes use Gemini first and Groq as a fallback. Review your transcript before preparing the change.</Text>
         {props.assistantError ? <Notice tone="warning">{props.assistantError}</Notice> : null}
         {props.assistantReply ? (
-          <Notice tone={preview?.action === 'clarify' ? 'warning' : 'success'}>{props.assistantReply}</Notice>
+          <Notice tone={preview ? 'warning' : 'success'}>{props.assistantReply}</Notice>
         ) : null}
         {preview && preview.action !== 'clarify' ? (
           <View style={[styles.previewCard, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
