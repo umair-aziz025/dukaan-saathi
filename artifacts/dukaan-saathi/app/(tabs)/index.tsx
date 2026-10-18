@@ -1818,25 +1818,40 @@ function NotificationsView({
     <>
       {phoneAlertsCard}
       {error ? <Notice tone="warning">{error}</Notice> : null}
-      <Panel>
-        <SectionHeading
-          title={role === 'merchant' ? 'Shop notifications' : 'Order updates'}
-          detail={unreadCount === 0 ? 'All notifications are read.' : `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}.`}
-        />
-        {unreadCount > 0 ? (
-          <View style={{ width: '100%', alignItems: 'flex-end' }}>
-            <AppButton
-              label="Mark all as read"
-              icon="check"
-              compact
-              variant="quiet"
-              testID="mark-all-notifications-read"
-              onPress={onMarkAllRead}
-              loading={markingAllNotifications}
-              disabled={Boolean(markingNotificationId)}
-            />
+      <Panel style={{ paddingHorizontal: 12, paddingVertical: 10, gap: 0 }}>
+        <View
+          style={{
+            width: '100%',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+          }}
+        >
+          <View style={{ flex: 1, minWidth: 120, gap: 2 }}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground, fontSize: 18, lineHeight: 22 }]}>
+              {role === 'merchant' ? 'Shop notifications' : 'Order updates'}
+            </Text>
+            <Text style={[styles.smallText, { color: colors.mutedForeground, fontSize: 10, lineHeight: 14 }]}>
+              {unreadCount === 0 ? 'All notifications are read.' : `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}.`}
+            </Text>
           </View>
-        ) : null}
+          {unreadCount > 0 ? (
+            <View style={{ marginLeft: 'auto' }}>
+              <AppButton
+                label="Mark all as read"
+                icon="check"
+                compact
+                variant="quiet"
+                testID="mark-all-notifications-read"
+                onPress={onMarkAllRead}
+                loading={markingAllNotifications}
+                disabled={Boolean(markingNotificationId)}
+              />
+            </View>
+          ) : null}
+        </View>
       </Panel>
       {notifications.map((notification) => {
         const transition = role === 'merchant' &&
