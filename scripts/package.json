@@ -5,8 +5,6 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
-    "seed:demo": "tsx ./src/seed-demo.ts",
-    "test:auth-flows": "tsx ./src/test-auth-flows.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
