@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,27 @@ import { HelpAssistant } from '@/components/help/HelpAssistant';
 import { WalkthroughScreen } from '@/components/onboarding/WalkthroughScreen';
 import { sharedIntroSteps } from '@/components/onboarding/walkthroughContent';
 import { isWalkthroughComplete, markWalkthroughComplete, sharedIntroStorageKey } from '@/services/onboardingProgress';
+
+const socialLinks: { label: string; icon: React.ComponentProps<typeof Feather>['name']; url: string; testID: string }[] = [
+  {
+    label: 'GitHub',
+    icon: 'github',
+    url: 'https://github.com/umair-aziz025',
+    testID: 'welcome-social-github',
+  },
+  {
+    label: 'LinkedIn',
+    icon: 'linkedin',
+    url: 'https://www.linkedin.com/in/umairaziz001/',
+    testID: 'welcome-social-linkedin',
+  },
+  {
+    label: 'Instagram',
+    icon: 'instagram',
+    url: 'https://www.instagram.com/umair._.92/',
+    testID: 'welcome-social-instagram',
+  },
+];
 
 function Benefit({ icon, title, detail }: { icon: React.ComponentProps<typeof Feather>['name']; title: string; detail: string }) {
   const colors = useColors();
@@ -30,6 +51,16 @@ export function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [introComplete, setIntroComplete] = useState<boolean | null>(null);
+  const [socialLinkError, setSocialLinkError] = useState('');
+
+  const openSocialLink = async (url: string) => {
+    setSocialLinkError('');
+    try {
+      await Linking.openURL(url);
+    } catch {
+      setSocialLinkError('Unable to open that link. Please check your connection and try again.');
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -80,7 +111,7 @@ export function WelcomeScreen() {
           styles.content,
           {
             paddingTop: Platform.OS === 'web' ? 67 : Math.max(insets.top ? 4 : 22, 18),
-            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 12,
+            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 84,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -142,9 +173,55 @@ export function WelcomeScreen() {
             <Text style={[styles.secondaryButtonText, { color: colors.foreground }]}>Log in</Text>
           </Pressable>
         </View>
-        <Text style={[styles.trustFoot, { color: colors.mutedForeground }]}>
-          A friendly way to shop local, one basket at a time.
-        </Text>
+        <View style={[styles.welcomeFooter, { borderTopColor: colors.border }]} testID="welcome-footer">
+          <Text style={[styles.trustFoot, { color: colors.mutedForeground }]}>
+            A friendly way to shop local, one basket at a time.
+          </Text>
+          <View style={styles.footerAttribution}>
+            <View style={[styles.footerAttributionIcon, { backgroundColor: colors.secondary }]}>
+              <Feather name="heart" size={17} color={colors.primary} />
+            </View>
+            <View style={styles.footerAttributionText}>
+              <Text style={[styles.footerEyebrow, { color: colors.accentStrong }]}>
+                CRAFTED WITH CARE
+              </Text>
+              <Text style={[styles.footerCreator, { color: colors.foreground }]}>
+                Created by Umair Aziz
+              </Text>
+            </View>
+          </View>
+          <View style={styles.footerSocialRow}>
+            {socialLinks.map((social) => (
+              <Pressable
+                key={social.label}
+                testID={social.testID}
+                accessibilityRole="link"
+                accessibilityLabel={`Visit Umair Aziz on ${social.label}`}
+                accessibilityHint="Opens an external profile"
+                onPress={() => { void openSocialLink(social.url); }}
+                style={({ pressed }) => [
+                  styles.footerSocialLink,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.75 : 1,
+                  },
+                ]}
+              >
+                <Feather name={social.icon} size={19} color={colors.primary} />
+                <Text style={[styles.footerSocialLabel, { color: colors.foreground }]}>{social.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          {socialLinkError ? (
+            <Text accessibilityRole="alert" style={[styles.footerLinkError, { color: colors.destructive }]}>
+              {socialLinkError}
+            </Text>
+          ) : null}
+          <Text style={[styles.footerCopyright, { color: colors.mutedForeground }]}>
+            © {new Date().getFullYear()} Dukaan Saathi · Made for neighbourhoods
+          </Text>
+        </View>
       </ScrollView>
       <HelpAssistant role="guest" />
     </SafeAreaView>
@@ -185,5 +262,16 @@ const styles = StyleSheet.create({
   primaryButtonText: { fontSize: 15, fontWeight: '700' },
   secondaryButton: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
-  trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginTop: -8 },
+  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 17, gap: 15, marginTop: 4 },
+  trustFoot: { textAlign: 'center', fontSize: 11, lineHeight: 17 },
+  footerAttribution: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  footerAttributionIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  footerAttributionText: { gap: 3 },
+  footerEyebrow: { fontSize: 9, fontWeight: '800', letterSpacing: 1.2 },
+  footerCreator: { fontSize: 13, fontWeight: '700' },
+  footerSocialRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
+  footerSocialLink: { flex: 1, minWidth: 0, minHeight: 64, borderWidth: 1, borderRadius: 15, paddingVertical: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', gap: 5 },
+  footerSocialLabel: { fontSize: 11, fontWeight: '700' },
+  footerLinkError: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
+  footerCopyright: { textAlign: 'center', fontSize: 10, lineHeight: 16 },
 });
