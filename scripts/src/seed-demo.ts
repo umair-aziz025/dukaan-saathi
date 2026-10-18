@@ -15,14 +15,16 @@ const firebaseProjectId = "dukaan-saathi-18899";
 const credentialsOutputPath = fileURLToPath(
   new URL("../../generated-artifacts/demo-account-passwords.json", import.meta.url),
 );
+// Fictional, non-deliverable email addresses. Never seed these accounts in a live database.
+// Use an isolated Firebase project for demo provisioning.
 const accounts = [
-  { email: "umairaziz682@gmail.com", name: "Dukaan Saathi Admin", role: "admin" },
-  { email: "justufor11@gmail.com", name: "Demo Shop Owner 1", role: "merchant" },
-  { email: "justufor14@gmail.com", name: "Demo Shop Owner 2", role: "merchant" },
-  { email: "justufor18@gmail.com", name: "Demo Shop Owner 3", role: "merchant" },
-  { email: "ddmcbaba69@gmail.com", name: "Demo Customer 1", role: "customer" },
-  { email: "justufor21@gmail.com", name: "Demo Customer 2", role: "customer" },
-  { email: "justufor27@gmail.com", name: "Demo Customer 3", role: "customer" },
+  { email: "demo.admin@example.com", name: "Demo Admin", role: "admin" },
+  { email: "demo.merchant.ayesha@example.com", name: "Ayesha (Demo Merchant)", role: "merchant" },
+  { email: "demo.merchant.bilal@example.com", name: "Bilal (Demo Merchant)", role: "merchant" },
+  { email: "demo.merchant.sana@example.com", name: "Sana (Demo Merchant)", role: "merchant" },
+  { email: "demo.customer.ali@example.com", name: "Ali (Demo Customer)", role: "customer" },
+  { email: "demo.customer.zoya@example.com", name: "Zoya (Demo Customer)", role: "customer" },
+  { email: "demo.customer.hamza@example.com", name: "Hamza (Demo Customer)", role: "customer" },
 ] as const;
 
 const shops: {
@@ -44,7 +46,7 @@ const shops: {
   }[];
 }[] = [
   {
-    ownerEmail: "justufor11@gmail.com",
+    ownerEmail: "demo.merchant.ayesha@example.com",
     id: "33333333-3333-4333-8333-333333333331",
     name: "Saathi Fresh Mart",
     address: "Demo listing · Mirpur Khas",
@@ -58,7 +60,7 @@ const shops: {
     ],
   },
   {
-    ownerEmail: "justufor14@gmail.com",
+    ownerEmail: "demo.merchant.bilal@example.com",
     id: "33333333-3333-4333-8333-333333333332",
     name: "Neighbourhood Produce",
     address: "Demo listing · Mirpur Khas",
@@ -72,7 +74,7 @@ const shops: {
     ],
   },
   {
-    ownerEmail: "justufor18@gmail.com",
+    ownerEmail: "demo.merchant.sana@example.com",
     id: "33333333-3333-4333-8333-333333333333",
     name: "Everyday Pantry",
     address: "Demo listing · Mirpur Khas",
