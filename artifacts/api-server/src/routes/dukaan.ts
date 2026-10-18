@@ -1318,9 +1318,14 @@ router.post("/dukaan/transcribe", requireAuth, aiLimiter, async (req, res) => {
   if (!parsed.success) return invalid(res, parsed.error);
   const profile = await profileRequired(req, res);
   if (!profile) return;
-  if (profile.role !== "customer") {
-    res.status(403).json({ error: "Voice shopping is available to customer accounts." });
+  if (profile.role !== "customer" && profile.role !== "merchant") {
+    res.status(403).json({ error: "Voice transcription is available to customer and merchant accounts." });
     return;
+  }
+  if (profile.role === "merchant") {
+    // Merchant voice instructions are only available to approved shop owners.
+    const shop = await approvedMerchantShop(profile, res);
+    if (!shop) return;
   }
   res.setHeader("Cache-Control", "no-store");
   try {
