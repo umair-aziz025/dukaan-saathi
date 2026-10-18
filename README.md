@@ -195,7 +195,7 @@ dukaan-saathi/
 │   ├── api-client-react/           # Generated typed HTTP client
 │   ├── api-zod/                    # Generated schemas
 │   └── db/                         # Firestore access / transactions
-├── scripts/                        # Test and demo helpers
+├── scripts/                        # Workspace maintenance helpers
 ├── docs/
 │   ├── firestore-setup.md
 │   └── heroku-namecheap-expo.md
@@ -355,11 +355,9 @@ The current order API uses **`pay_on_pickup`**. Live card, JazzCash and Easypais
 | --- | --- |
 | `pnpm run typecheck` | Type-check libraries and application artifacts |
 | `pnpm --filter @workspace/api-server run build` | Bundle the Express backend |
-| `pnpm --filter @workspace/api-server run test` | Test AI-provider logic |
 | `pnpm --filter @workspace/api-spec run codegen` | Regenerate API client and schemas |
-| `pnpm --filter @workspace/scripts run test:auth-flows` | Run configured authentication-flow tests |
 
-**Demo data:** `pnpm --filter @workspace/scripts run seed:demo` is for an isolated test database only. **Never run the demo seeder against production.**
+**Testing:** Verify AI assistant responses, merchant inventory updates, Firebase sign-in and voice workflows in a dedicated non-production environment before release. Retired demo seeding and authentication/AI test scripts are not included in this repository.
 
 ## 📊 Project Status
 
