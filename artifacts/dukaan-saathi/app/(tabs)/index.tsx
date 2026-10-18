@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   KeyboardAvoidingView,
   Linking,
   Modal,
@@ -151,6 +152,7 @@ type ProductItem = {
   active: boolean;
 };
 type ChatMessage = { role: 'user' | 'assistant'; text: string; products?: ProductItem[] };
+const SHOPPING_CHAT_IDLE_TIMEOUT_MS = 60_000;
 type CartLine = { product: ProductItem; quantity: number };
 
 function errorMessage(error: unknown, fallback: string) {
@@ -411,6 +413,13 @@ function Dashboard({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [voiceReview, setVoiceReview] = useState(false);
+  const chatSessionVersion = useRef(0);
+  const resetShoppingChat = useCallback(() => {
+    chatSessionVersion.current += 1;
+    setMessages([]);
+    setDraft('');
+    setVoiceReview(false);
+  }, []);
   const [cart, setCart] = useState<Record<string, CartLine>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [lastOrder, setLastOrder] = useState<{ id: string } | null>(null);
@@ -540,6 +549,42 @@ function Dashboard({
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [recording, setRecording] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
+
+  useEffect(() => {
+    if (profile.role !== 'customer') return;
+    if (messages.length === 0 && !draft.trim() && !voiceReview) return;
+    if (assistant.isPending || transcribe.isPending || recording || voiceBusy) return;
+    let expired = false;
+    const expireChat = () => {
+      if (expired) return;
+      expired = true;
+      resetShoppingChat();
+    };
+    const idleSince = Date.now();
+    const timeoutId = setTimeout(expireChat, SHOPPING_CHAT_IDLE_TIMEOUT_MS);
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (
+        nextState === 'active' &&
+        Date.now() - idleSince >= SHOPPING_CHAT_IDLE_TIMEOUT_MS
+      ) {
+        expireChat();
+      }
+    });
+    return () => {
+      clearTimeout(timeoutId);
+      appStateSubscription.remove();
+    };
+  }, [
+    assistant.isPending,
+    draft,
+    messages,
+    profile.role,
+    recording,
+    resetShoppingChat,
+    transcribe.isPending,
+    voiceBusy,
+    voiceReview,
+  ]);
 
   const shops = catalog.data?.shops ?? [];
   const shopName = (shopId: string) => shops.find((shop) => shop.id === shopId)?.name ?? 'Local shop';
@@ -718,6 +763,7 @@ function Dashboard({
   const sendShoppingRequest = async () => {
     const message = draft.trim();
     if (!message) return;
+    const requestSessionVersion = chatSessionVersion.current;
     setDraft('');
     setVoiceReview(false);
     const nextMessages: ChatMessage[] = [...messages, { role: 'user', text: message }];
@@ -731,12 +777,14 @@ function Dashboard({
           history: messages.slice(-4).map(({ role, text }) => ({ role, content: text })),
         },
       });
+      if (requestSessionVersion !== chatSessionVersion.current) return;
       setMessages((current) => [...current, {
         role: 'assistant',
         text: result.reply,
         products: result.products as ProductItem[],
       }]);
     } catch (reason) {
+      if (requestSessionVersion !== chatSessionVersion.current) return;
       setMessages((current) => [...current, {
         role: 'assistant',
         text: errorMessage(reason, 'Saathi is busy. Browse the nearby products below.'),
@@ -803,6 +851,7 @@ function Dashboard({
         },
       });
       setLastOrder({ id: result.order.id });
+      resetShoppingChat();
       setCart({});
       setCheckoutOpen(false);
       setSection('orders');
@@ -1351,7 +1400,7 @@ function CustomerHome(props: {
       <Panel>
         <View style={styles.assistantHeadingRow}>
           <View style={styles.assistantHeadingText}>
-            <SectionHeading title="Ask your Saathi" detail="Describe items and pack sizes. AI suggests options; you choose and confirm." />
+            <SectionHeading title="Ask your Saathi" detail="Describe items and pack sizes; Saathi suggests nearby options. Chat and draft reset after 1 minute idle or a successful order." />
           </View>
           <View style={styles.assistantHeadingIcon}>
             <Feather name="zap" size={17} color={colors.primary} />

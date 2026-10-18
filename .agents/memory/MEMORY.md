@@ -2,3 +2,4 @@
 - [Firebase authentication policy](firebase-auth-policy.md) — use Firebase Auth through the API, retry post-verification reads, and keep Expo web API calls same-origin.
 - [Existing artifact preservation](artifact-preservation.md) — keep API and Canvas/design registrations and managed metadata stable while updating the mobile app.
 - [API client code generation](api-codegen.md) — use the package codegen script so generated Zod exports are normalized before typechecking.
+- [Shopper chat reset](shopper-chat-reset.md) — clear customer chat after 60 seconds idle or a successful order; preserve it if ordering fails.
