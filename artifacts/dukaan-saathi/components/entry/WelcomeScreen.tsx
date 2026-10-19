@@ -14,7 +14,6 @@ import { isWalkthroughComplete, markWalkthroughComplete, sharedIntroStorageKey }
 // Source: Google Fonts (SIL Open Font License). Loaded at runtime to avoid
 // adding native dependencies; keep a graceful fallback for offline first launches.
 const footerSignatureFonts = {
-  WelcomeCareScript: 'https://raw.githubusercontent.com/google/fonts/main/ofl/allura/Allura-Regular.ttf',
   WelcomeNameScript: 'https://raw.githubusercontent.com/google/fonts/main/ofl/greatvibes/GreatVibes-Regular.ttf',
 };
 
@@ -197,19 +196,7 @@ export function WelcomeScreen() {
               minimumFontScale={0.72}
               testID="welcome-signature-line"
             >
-              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>with </Text>
-              <Text
-                style={[
-                  styles.footerCareSignature,
-                  {
-                    fontFamily: signaturesReady ? 'WelcomeCareScript' : 'serif',
-                    fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                    color: colors.accentStrong,
-                    textShadowColor: `${colors.accentStrong}4D`,
-                  },
-                ]}
-              >Care</Text>
-              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}> by </Text>
+              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by </Text>
               <Text
                 style={[
                   styles.footerNameSignature,
@@ -294,23 +281,19 @@ const styles = StyleSheet.create({
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
   welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 13, gap: 8, marginTop: 'auto' },
   trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginBottom: 2 },
-  footerSignatureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 8 },
+  footerSignatureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   footerHeart: {
     width: 38, height: 38, flexShrink: 0, borderRadius: 13,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  footerSignatureLine: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 45, includeFontPadding: false },
+  footerSignatureLine: { flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 45, includeFontPadding: false },
   footerPlainWord: { fontSize: 12, fontWeight: '600' },
-  footerCareSignature: {
-    fontSize: 31, includeFontPadding: false,
-    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5,
-  },
   footerNameSignature: {
     fontSize: 31, includeFontPadding: false,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
-  // Social icons sit on their own compact row, safely to the left of Help Saathi.
-  footerSocialRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 46, paddingRight: 68 },
+  // The small icon group is centered within the footer, away from the right-edge help button.
+  footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   footerMiniSocial: {
     width: 34, height: 34, borderRadius: 12, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
