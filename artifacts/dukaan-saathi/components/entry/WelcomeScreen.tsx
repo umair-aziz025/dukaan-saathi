@@ -120,7 +120,7 @@ export function WelcomeScreen() {
           styles.content,
           {
             paddingTop: Platform.OS === 'web' ? 67 : Math.max(insets.top ? 4 : 22, 18),
-            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 24 : 12) + 12,
+            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 16 : 8) + 6,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -194,7 +194,7 @@ export function WelcomeScreen() {
                 {
                   fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
                   fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                  fontSize: screenWidth < 390 ? 23 : 26,
+                  fontSize: screenWidth < 390 ? 21 : 23,
                   color: colors.primary,
                   textShadowColor: `${colors.primary}45`,
                 },
@@ -206,7 +206,7 @@ export function WelcomeScreen() {
             >
               Umair, Soban, Ahsan
             </Text>
-            <Feather name="heart" size={21} color={colors.primary} accessibilityLabel="Love" />
+            <Feather name="heart" size={17} color={colors.primary} accessibilityLabel="Love" />
           </View>
           <View style={styles.footerSocialRow} testID="welcome-footer-social-links">
             {socialLinks.map((social) => (
@@ -216,7 +216,7 @@ export function WelcomeScreen() {
                 accessibilityRole="link"
                 accessibilityLabel={`Visit Umair Aziz on ${social.label}`}
                 accessibilityHint="Opens an external profile"
-                hitSlop={6}
+                hitSlop={10}
                 onPress={() => { void openSocialLink(social.url); }}
                 style={({ pressed }) => [
                   styles.footerMiniSocial,
@@ -227,7 +227,7 @@ export function WelcomeScreen() {
                   },
                 ]}
               >
-                <Feather name={social.icon} size={16} color={colors.primary} />
+                <Feather name={social.icon} size={14} color={colors.primary} />
               </Pressable>
             ))}
           </View>
@@ -277,19 +277,19 @@ const styles = StyleSheet.create({
   primaryButtonText: { fontSize: 15, fontWeight: '700' },
   secondaryButton: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
-  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 13, gap: 8, marginTop: 'auto' },
-  trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginBottom: 2 },
-  footerSignatureRow: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  footerPlainWord: { flexShrink: 0, fontSize: 12, fontWeight: '600' },
+  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 9, gap: 4, marginTop: 'auto' },
+  trustFoot: { textAlign: 'center', fontSize: 9, lineHeight: 13, marginBottom: 0 },
+  footerSignatureRow: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  footerPlainWord: { flexShrink: 0, fontSize: 11, fontWeight: '600' },
   footerNameSignature: {
-    flexShrink: 1, minWidth: 0, maxWidth: '100%', lineHeight: 47,
-    paddingHorizontal: 6, includeFontPadding: true,
+    flexShrink: 1, minWidth: 0, maxWidth: '100%', lineHeight: 36,
+    paddingHorizontal: 5, includeFontPadding: true,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
   // The small icon group is centered within the footer, away from the right-edge help button.
-  footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   footerMiniSocial: {
-    width: 34, height: 34, borderRadius: 12, borderWidth: 1,
+    width: 29, height: 29, borderRadius: 10, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   footerLinkError: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
