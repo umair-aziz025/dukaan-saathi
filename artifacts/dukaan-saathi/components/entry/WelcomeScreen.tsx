@@ -189,14 +189,8 @@ export function WelcomeScreen() {
             <View style={[styles.footerHeart, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
               <Feather name="heart" size={18} color={colors.primary} />
             </View>
-            <Text
-              style={[styles.footerSignatureLine, { color: colors.mutedForeground }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.72}
-              testID="welcome-signature-line"
-            >
-              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by </Text>
+            <View style={styles.footerNameGroup} testID="welcome-signature-line">
+              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by</Text>
               <Text
                 style={[
                   styles.footerNameSignature,
@@ -207,8 +201,15 @@ export function WelcomeScreen() {
                     textShadowColor: `${colors.primary}45`,
                   },
                 ]}
-              >Umair Aziz</Text>
-            </Text>
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+                accessibilityLabel="Umair Aziz"
+              >
+                Umair Aziz
+              </Text>
+              <Text style={styles.footerEndHeart} accessibilityLabel="Love">❤️</Text>
+            </View>
           </View>
           <View style={styles.footerSocialRow} testID="welcome-footer-social-links">
             {socialLinks.map((social) => (
@@ -286,12 +287,14 @@ const styles = StyleSheet.create({
     width: 38, height: 38, flexShrink: 0, borderRadius: 13,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  footerSignatureLine: { flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 45, includeFontPadding: false },
-  footerPlainWord: { fontSize: 12, fontWeight: '600' },
+  footerNameGroup: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexShrink: 1, minWidth: 0, gap: 5 },
+  footerPlainWord: { flexShrink: 0, fontSize: 12, fontWeight: '600' },
   footerNameSignature: {
-    fontSize: 31, includeFontPadding: false,
+    flexShrink: 1, minWidth: 0, fontSize: 29, lineHeight: 47,
+    paddingHorizontal: 3, includeFontPadding: true,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
+  footerEndHeart: { flexShrink: 0, fontSize: 17, lineHeight: 30, includeFontPadding: true },
   // The small icon group is centered within the footer, away from the right-edge help button.
   footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   footerMiniSocial: {
