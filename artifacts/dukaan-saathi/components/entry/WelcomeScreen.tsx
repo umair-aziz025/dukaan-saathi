@@ -194,14 +194,17 @@ export function WelcomeScreen() {
                 {
                   fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
                   fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                  fontSize: screenWidth < 360 ? 24 : 28,
+                  fontSize: screenWidth < 390 ? 23 : 26,
                   color: colors.primary,
                   textShadowColor: `${colors.primary}45`,
                 },
               ]}
-              accessibilityLabel="Umair Aziz"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+              accessibilityLabel="Umair, Soban, Ahsan"
             >
-              Umair Aziz
+              Umair, Soban, Ahsan
             </Text>
             <Feather name="heart" size={21} color={colors.primary} accessibilityLabel="Love" />
           </View>
@@ -279,7 +282,8 @@ const styles = StyleSheet.create({
   footerSignatureRow: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: 7 },
   footerPlainWord: { flexShrink: 0, fontSize: 12, fontWeight: '600' },
   footerNameSignature: {
-    flexShrink: 0, lineHeight: 47, paddingHorizontal: 4, includeFontPadding: true,
+    flexShrink: 1, minWidth: 0, maxWidth: '100%', lineHeight: 47,
+    paddingHorizontal: 6, includeFontPadding: true,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
   // The small icon group is centered within the footer, away from the right-edge help button.
