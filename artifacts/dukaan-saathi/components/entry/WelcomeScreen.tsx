@@ -251,9 +251,6 @@ export function WelcomeScreen() {
               {socialLinkError}
             </Text>
           ) : null}
-          <Text style={[styles.footerCopyright, { color: colors.mutedForeground }]}>
-            © {new Date().getFullYear()} Dukaan Saathi · Made for neighbourhoods
-          </Text>
         </View>
       </ScrollView>
       <HelpAssistant role="guest" />
@@ -319,8 +316,4 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   footerLinkError: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
-  footerCopyright: {
-    textAlign: 'left', fontSize: 9, lineHeight: 14,
-    paddingRight: Platform.OS === 'web' ? 0 : 70,
-  },
 });
