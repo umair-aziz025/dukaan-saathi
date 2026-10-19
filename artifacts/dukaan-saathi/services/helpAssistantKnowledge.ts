@@ -251,6 +251,11 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   if (match(text, /\b(?:verify|verification|confirm)\b.*\bemail\b|\bemail\b.*\b(?:verify|verification)\b|verification link|verify my account|email verify|تصدیق/i)) {
     return verificationAnswer();
   }
+  if (match(text, /\b(?:admin|administrator)\b/i) &&
+    match(text, /\b(?:sign\s?up|signup|register|registration|create (?:an? )?account|become|join as)\b/i)) {
+    return restrictedAdminAnswer(role);
+  }
+
   // Registering a store is separate from creating a user account.
   if (match(text, /\b(?:register|list|apply for|create|set up)\b.*\b(?:my |a |the )?(?:shop|store|dukaan)\b|shop registration/i)) {
     return shopAnswer(role);
@@ -273,6 +278,9 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   }
 
   // Concrete operations, ordered from specific to general to avoid collisions.
+  if (match(text, /\b(?:access|see|read|view|show|retrieve)\b.*\b(?:user|account|customer|merchant|order|personal|private)\b.*\b(?:data|records?|information|details)\b|\b(?:my |their )?(?:private|personal) data\b/i)) {
+    return 'Help Saathi cannot see private user accounts, live orders or personal records, even for administrators. To inspect authorized data, use the appropriate signed-in app controls. Please do not paste passwords, identity numbers or private records here.';
+  }
   if (match(text, /\b(?:admin|administrator)\b/i) && role !== 'admin') return restrictedAdminAnswer(role);
 
   if (match(text, /\b(?:change|edit|update)\b.*\b(?:shop|store|dukaan)\b.*\b(?:details|name|address|location|pin)\b|\b(?:shop|store) (?:details|name|address|location)\b/i)) {
@@ -318,7 +326,7 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   if (match(text, /\b(?:what (?:can|does) (?:the |your )?assistants? do|what can (?:the |your )?ai do|what can (?:this |the )?chatbot do|assistants?|chatbot|shopping ai|inventory ai|saathi ai|help saathi)\b/i)) {
     return assistantAnswer(role);
   }
-  if (match(text, /\b(?:inventory|stock|change (?:a |my |the )?price|product (?:management|listings?)|add (?:a |new )?product|edit (?:a )?product|remove (?:a )?product|manage products?|update stock|prepare change)\b/i)) {
+  if (match(text, /\b(?:inventory|stock|(?:change|edit|update|set) (?:a |my |the )?(?:product )?price|product (?:management|listings?)|add (?:a |new )?product|edit (?:a )?product|remove (?:a )?product|manage products?|update stock|prepare change)\b/i)) {
     return inventoryAnswer(role);
   }
   if (match(text, /\b(?:place|make|create|submit|buy)\b.*\b(?:order|groceries|grocery|items)\b|\b(?:how do i order|order groceries|checkout|review basket|shopping basket|cart)\b/i)) {
