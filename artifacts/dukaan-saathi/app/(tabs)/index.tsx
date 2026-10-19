@@ -1476,9 +1476,10 @@ function CustomerHome(props: {
           </View>
         ) : null}
         {props.messages.map((message, index) => (
-          <View key={`${index}-${message.role}`} style={message.role === 'user' ? styles.userMessage : styles.assistantMessage}>
+          <View key={`${index}-${message.role}`} style={[message.role === 'user' ? styles.userMessage : styles.assistantMessage, message.products?.length ? styles.assistantProductsMessage : null]}>
             <View style={[
               styles.messageBubble,
+              message.products?.length ? styles.assistantProductsBubble : null,
               {
                 backgroundColor: message.role === 'user' ? colors.secondary : colors.card,
                 borderColor: colors.border,
@@ -1487,19 +1488,38 @@ function CustomerHome(props: {
             ]}>
               <Text style={[styles.bodyText, { color: colors.foreground }]}>{message.text}</Text>
               {message.products?.map((product) => (
-                <View key={product.id} style={[styles.suggestionRow, { borderTopColor: colors.border }]}>
-                  <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={[styles.productName, { color: colors.foreground }]}>{product.name}</Text>
-                    <Text style={[styles.smallText, { color: colors.mutedForeground }]}>{product.unit} · {props.shopName(product.shopId)} · {product.stock} left</Text>
-                    <Text style={[styles.smallText, { color: colors.mutedForeground }]}>{props.shopInfo(product.shopId)?.address}</Text>
-                    {!props.shopInfo(product.shopId)?.isDemo ? (
-                      <Pressable onPress={() => Linking.openURL(`tel:${props.shopInfo(product.shopId)?.contact}`)}>
-                        <Text style={[styles.smallText, { color: colors.primary, fontWeight: '700' }]}>Call {props.shopInfo(product.shopId)?.contact}</Text>
-                      </Pressable>
-                    ) : <Text style={[styles.smallText, { color: colors.mutedForeground }]}>Demo listing · not a real shop</Text>}
-                    <Text style={[styles.priceText, { color: colors.primary }]}>PKR {product.price.toLocaleString()}</Text>
+                <View key={product.id} style={[styles.assistantProductCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <Text style={[styles.productName, styles.assistantProductText, { color: colors.foreground }]}>{product.name}</Text>
+                  <Text style={[styles.smallText, styles.assistantProductText, { color: colors.mutedForeground }]}>
+                    {product.unit} · {props.shopName(product.shopId)} · {product.stock} left
+                  </Text>
+                  {props.shopInfo(product.shopId)?.address ? (
+                    <Text style={[styles.smallText, styles.assistantProductText, { color: colors.mutedForeground }]}>
+                      {props.shopInfo(product.shopId)?.address}
+                    </Text>
+                  ) : null}
+                  {!props.shopInfo(product.shopId)?.isDemo && props.shopInfo(product.shopId)?.contact ? (
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => { void Linking.openURL(`tel:${props.shopInfo(product.shopId)?.contact}`); }}
+                      style={styles.assistantProductContact}
+                    >
+                      <Feather name="phone" size={12} color={colors.primary} />
+                      <Text style={[styles.smallText, styles.assistantProductText, { color: colors.primary, fontWeight: '700' }]}>
+                        {props.shopInfo(product.shopId)?.contact}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={[styles.smallText, styles.assistantProductText, { color: colors.mutedForeground }]}>
+                      Demo listing · not a real shop
+                    </Text>
+                  )}
+                  <View style={styles.assistantProductPurchase}>
+                    <Text style={[styles.priceText, styles.assistantProductPrice, { color: colors.primary }]}>
+                      PKR {product.price.toLocaleString()}
+                    </Text>
+                    <AppButton label="Add" icon="plus" compact onPress={() => props.addProduct(product)} disabled={product.stock < 1} />
                   </View>
-                  <AppButton label="Add" icon="plus" compact onPress={() => props.addProduct(product)} />
                 </View>
               ))}
             </View>
@@ -2211,25 +2231,29 @@ function MerchantView(props: {
         {props.voiceReview ? (
           <Notice tone="success">Voice note transcribed. Review the text above, correct any product quantities or prices, then tap Prepare change.</Notice>
         ) : null}
-        <View style={styles.row}>
-          <AppButton
-            label={props.recording ? 'Stop & transcribe' : props.voiceBusy ? 'Transcribing…' : 'Voice note'}
-            icon={props.recording ? 'square' : 'mic'}
-            variant="quiet"
-            compact
-            onPress={props.recording ? props.onStopVoice : props.onStartVoice}
-            loading={props.voiceBusy && !props.recording}
-            disabled={props.voiceBusy || props.assistantBusy || props.confirmBusy}
-            testID="merchant-inventory-voice"
-          />
-          <AppButton
-            label="Prepare change"
-            icon="zap"
-            onPress={props.onAskAssistant}
-            loading={props.assistantBusy}
-            disabled={!props.instruction.trim() || props.voiceBusy || props.recording || props.confirmBusy}
-            testID="merchant-prepare-change"
-          />
+        <View style={styles.merchantAssistantActions}>
+          <View style={styles.merchantVoiceButton}>
+            <AppButton
+              label={props.recording ? 'Stop note' : props.voiceBusy ? 'Processing…' : 'Voice note'}
+              icon={props.recording ? 'square' : 'mic'}
+              variant="quiet"
+              compact
+              onPress={props.recording ? props.onStopVoice : props.onStartVoice}
+              loading={props.voiceBusy && !props.recording}
+              disabled={props.voiceBusy || props.assistantBusy || props.confirmBusy}
+              testID="merchant-inventory-voice"
+            />
+          </View>
+          <View style={styles.merchantPrepareButton}>
+            <AppButton
+              label="Prepare change"
+              compact
+              onPress={props.onAskAssistant}
+              loading={props.assistantBusy}
+              disabled={!props.instruction.trim() || props.voiceBusy || props.recording || props.confirmBusy}
+              testID="merchant-prepare-change"
+            />
+          </View>
         </View>
         <Text style={[styles.smallText, { color: colors.mutedForeground }]}>Voice notes use Gemini first and Groq as a fallback. Review your transcript before preparing the change.</Text>
         {props.assistantError ? <Notice tone="warning">{props.assistantError}</Notice> : null}
@@ -2854,8 +2878,17 @@ const styles = StyleSheet.create({
   assistantWelcome: { padding: 14, borderRadius: 16, gap: 4 },
   userMessage: { alignItems: 'flex-end' },
   assistantMessage: { alignItems: 'flex-start' },
+  assistantProductsMessage: { width: '100%', minWidth: 0, alignItems: 'stretch' },
   messageBubble: { maxWidth: '96%', padding: 12, borderWidth: 1, borderRadius: 17, gap: 10 },
-  suggestionRow: { borderTopWidth: 1, paddingTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  assistantProductsBubble: { width: '100%', maxWidth: '100%', minWidth: 0 },
+  assistantProductCard: { width: '100%', minWidth: 0, padding: 11, borderWidth: 1, borderRadius: 14, gap: 5 },
+  assistantProductText: { flexShrink: 1, minWidth: 0 },
+  assistantProductContact: { flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0 },
+  assistantProductPurchase: { flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 },
+  assistantProductPrice: { flexShrink: 1, minWidth: 0 },
+  merchantAssistantActions: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'stretch', gap: 8 },
+  merchantVoiceButton: { flex: 1, minWidth: 0 },
+  merchantPrepareButton: { flex: 1.25, minWidth: 0 },
   composer: { padding: 10, borderWidth: 1, borderRadius: 18, gap: 8 },
   composerInput: { minHeight: 60, borderWidth: 0, paddingHorizontal: 6, paddingVertical: 5 },
   composerActions: { flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
