@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -57,6 +57,7 @@ export function WelcomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const [signaturesReady] = useFonts(footerSignatureFonts);
   const [introComplete, setIntroComplete] = useState<boolean | null>(null);
   const [socialLinkError, setSocialLinkError] = useState('');
@@ -185,31 +186,24 @@ export function WelcomeScreen() {
           <Text style={[styles.trustFoot, { color: colors.mutedForeground }]}>
             A friendly way to shop local, one basket at a time.
           </Text>
-          <View style={styles.footerSignatureRow}>
-            <View style={[styles.footerHeart, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-              <Feather name="heart" size={18} color={colors.primary} />
-            </View>
-            <View style={styles.footerNameGroup} testID="welcome-signature-line">
-              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by</Text>
-              <Text
-                style={[
-                  styles.footerNameSignature,
-                  {
-                    fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
-                    fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                    color: colors.primary,
-                    textShadowColor: `${colors.primary}45`,
-                  },
-                ]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.6}
-                accessibilityLabel="Umair Aziz"
-              >
-                Umair Aziz
-              </Text>
-              <Text style={styles.footerEndHeart} accessibilityLabel="Love">❤️</Text>
-            </View>
+          <View style={styles.footerSignatureRow} testID="welcome-signature-line">
+            <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by</Text>
+            <Text
+              style={[
+                styles.footerNameSignature,
+                {
+                  fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
+                  fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
+                  fontSize: screenWidth < 360 ? 24 : 28,
+                  color: colors.primary,
+                  textShadowColor: `${colors.primary}45`,
+                },
+              ]}
+              accessibilityLabel="Umair Aziz"
+            >
+              Umair Aziz
+            </Text>
+            <Feather name="heart" size={21} color={colors.primary} accessibilityLabel="Love" />
           </View>
           <View style={styles.footerSocialRow} testID="welcome-footer-social-links">
             {socialLinks.map((social) => (
@@ -282,19 +276,12 @@ const styles = StyleSheet.create({
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
   welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 13, gap: 8, marginTop: 'auto' },
   trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginBottom: 2 },
-  footerSignatureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  footerHeart: {
-    width: 38, height: 38, flexShrink: 0, borderRadius: 13,
-    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
-  },
-  footerNameGroup: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexShrink: 1, minWidth: 0, gap: 5 },
+  footerSignatureRow: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: 7 },
   footerPlainWord: { flexShrink: 0, fontSize: 12, fontWeight: '600' },
   footerNameSignature: {
-    flexShrink: 1, minWidth: 0, fontSize: 29, lineHeight: 47,
-    paddingHorizontal: 3, includeFontPadding: true,
+    flexShrink: 0, lineHeight: 47, paddingHorizontal: 4, includeFontPadding: true,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
-  footerEndHeart: { flexShrink: 0, fontSize: 17, lineHeight: 30, includeFontPadding: true },
   // The small icon group is centered within the footer, away from the right-edge help button.
   footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   footerMiniSocial: {
