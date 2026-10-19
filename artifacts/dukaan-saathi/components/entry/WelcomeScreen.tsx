@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -58,9 +58,7 @@ export function WelcomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
   const [signaturesReady] = useFonts(footerSignatureFonts);
-  const compactFooter = screenWidth < 380;
   const [introComplete, setIntroComplete] = useState<boolean | null>(null);
   const [socialLinkError, setSocialLinkError] = useState('');
 
@@ -189,80 +187,64 @@ export function WelcomeScreen() {
             A friendly way to shop local, one basket at a time.
           </Text>
           <View style={styles.footerSignatureRow}>
-            <View style={[styles.footerHeartHalo, { backgroundColor: `${colors.primary}16` }]}>
-              <View style={[
-                styles.footerHeart,
-                {
-                  backgroundColor: colors.secondary,
-                  borderColor: `${colors.primary}48`,
-                  shadowColor: colors.primary,
-                },
-              ]}>
-                <Feather name="heart" size={19} color={colors.primary} />
-              </View>
+            <View style={[styles.footerHeart, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+              <Feather name="heart" size={18} color={colors.primary} />
             </View>
-            <View style={styles.footerSignatureCopy}>
-              <View style={styles.footerCareRow}>
-                <Text style={[styles.footerEyebrow, { color: colors.accentStrong }]}>CRAFTED WITH</Text>
-                <Text
-                  style={[
-                    styles.footerCareSignature,
-                    {
-                      color: colors.accentStrong,
-                      fontFamily: signaturesReady ? 'WelcomeCareScript' : 'serif',
-                      fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                      textShadowColor: `${colors.accentStrong}80`,
-                    },
-                  ]}
-                >
-                  Care
-                </Text>
-              </View>
-              <View style={styles.footerCreatorRow}>
-                <Text style={[styles.footerCreatorLabel, { color: colors.mutedForeground }]}>
-                  {compactFooter ? 'by' : 'Created by'}
-                </Text>
-                <Text
-                  style={[
-                    styles.footerNameSignature,
-                    {
-                      color: colors.primary,
-                      fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
-                      fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                      fontSize: compactFooter ? 27 : 30,
-                      textShadowColor: `${colors.primary}7A`,
-                    },
-                  ]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  Umair Aziz
-                </Text>
-                <View style={styles.footerInlineSocials}>
-                  {socialLinks.map((social) => (
-                    <Pressable
-                      key={social.label}
-                      testID={social.testID}
-                      accessibilityRole="link"
-                      accessibilityLabel={`Visit Umair Aziz on ${social.label}`}
-                      accessibilityHint="Opens an external profile"
-                      hitSlop={6}
-                      onPress={() => { void openSocialLink(social.url); }}
-                      style={({ pressed }) => [
-                        styles.footerMiniSocial,
-                        {
-                          backgroundColor: colors.card,
-                          borderColor: `${colors.primary}40`,
-                          opacity: pressed ? 0.7 : 1,
-                        },
-                      ]}
-                    >
-                      <Feather name={social.icon} size={14} color={colors.primary} />
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            </View>
+            <Text
+              style={[styles.footerSignatureLine, { color: colors.mutedForeground }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
+              testID="welcome-signature-line"
+            >
+              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>with </Text>
+              <Text
+                style={[
+                  styles.footerCareSignature,
+                  {
+                    fontFamily: signaturesReady ? 'WelcomeCareScript' : 'serif',
+                    fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
+                    color: colors.accentStrong,
+                    textShadowColor: `${colors.accentStrong}4D`,
+                  },
+                ]}
+              >Care</Text>
+              <Text style={[styles.footerPlainWord, { color: colors.foreground }]}> by </Text>
+              <Text
+                style={[
+                  styles.footerNameSignature,
+                  {
+                    fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
+                    fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
+                    color: colors.primary,
+                    textShadowColor: `${colors.primary}45`,
+                  },
+                ]}
+              >Umair Aziz</Text>
+            </Text>
+          </View>
+          <View style={styles.footerSocialRow} testID="welcome-footer-social-links">
+            {socialLinks.map((social) => (
+              <Pressable
+                key={social.label}
+                testID={social.testID}
+                accessibilityRole="link"
+                accessibilityLabel={`Visit Umair Aziz on ${social.label}`}
+                accessibilityHint="Opens an external profile"
+                hitSlop={6}
+                onPress={() => { void openSocialLink(social.url); }}
+                style={({ pressed }) => [
+                  styles.footerMiniSocial,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Feather name={social.icon} size={16} color={colors.primary} />
+              </Pressable>
+            ))}
           </View>
           {socialLinkError ? (
             <Text accessibilityRole="alert" style={[styles.footerLinkError, { color: colors.destructive }]}>
@@ -313,37 +295,32 @@ const styles = StyleSheet.create({
   primaryButtonText: { fontSize: 15, fontWeight: '700' },
   secondaryButton: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
-  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 13, gap: 7, marginTop: 'auto' },
-  trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginBottom: 4 },
-  footerSignatureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 7 },
-  footerHeartHalo: { width: 44, height: 44, flexShrink: 0, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 13, gap: 8, marginTop: 'auto' },
+  trustFoot: { textAlign: 'center', fontSize: 10, lineHeight: 15, marginBottom: 2 },
+  footerSignatureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerHeart: {
-    width: 34, height: 34, borderRadius: 13, borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.64,
-    shadowRadius: 11, elevation: 5,
+    width: 38, height: 38, flexShrink: 0, borderRadius: 13,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  footerSignatureCopy: { flex: 1, minWidth: 0, gap: 1 },
-  footerCareRow: { minHeight: 29, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  footerEyebrow: { fontSize: 9, fontWeight: '800', letterSpacing: 1.15 },
+  footerSignatureLine: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 45, includeFontPadding: false },
+  footerPlainWord: { fontSize: 12, fontWeight: '600' },
   footerCareSignature: {
-    fontSize: 29, lineHeight: 38, includeFontPadding: false,
-    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 11,
+    fontSize: 31, includeFontPadding: false,
+    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5,
   },
-  footerCreatorRow: { flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0, width: '100%' },
-  footerCreatorLabel: { flexShrink: 0, fontSize: 9, fontWeight: '600' },
   footerNameSignature: {
-    flex: 1, minWidth: 0, lineHeight: 42, includeFontPadding: false,
-    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 13,
+    fontSize: 31, includeFontPadding: false,
+    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
-  footerInlineSocials: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
+  // Social icons sit on their own compact row, safely to the left of Help Saathi.
+  footerSocialRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 46, paddingRight: 68 },
   footerMiniSocial: {
-    width: 29, height: 29, borderRadius: 11, borderWidth: 1,
+    width: 34, height: 34, borderRadius: 12, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   footerLinkError: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
   footerCopyright: {
     textAlign: 'left', fontSize: 9, lineHeight: 14,
-    paddingRight: Platform.OS === 'web' ? 0 : 60,
+    paddingRight: Platform.OS === 'web' ? 0 : 70,
   },
 });
