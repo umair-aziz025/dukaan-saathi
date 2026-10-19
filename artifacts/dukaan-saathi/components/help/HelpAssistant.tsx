@@ -43,7 +43,7 @@ export function HelpAssistant({ role, bottomOffset = 18, visible = true }: HelpA
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<HelpMessage[]>([getHelpGreeting()]);
+  const [messages, setMessages] = useState<HelpMessage[]>(() => [getHelpGreeting(role)]);
   const [reducedMotion, setReducedMotion] = useState(true);
   const messageList = useRef<FlatList<HelpMessage>>(null);
   const inputRef = useRef<TextInput>(null);
@@ -104,7 +104,7 @@ export function HelpAssistant({ role, bottomOffset = 18, visible = true }: HelpA
   }, [float, isOpen, reducedMotion, visible]);
 
   useEffect(() => {
-    setMessages([getHelpGreeting()]);
+    setMessages([getHelpGreeting(role)]);
     setDraft('');
   }, [role]);
 
@@ -140,7 +140,7 @@ export function HelpAssistant({ role, bottomOffset = 18, visible = true }: HelpA
   const close = () => {
     setIsOpen(false);
     setDraft('');
-    setMessages([getHelpGreeting()]);
+    setMessages([getHelpGreeting(role)]);
   };
 
   const renderMessage = ({ item }: { item: HelpMessage }) => {
