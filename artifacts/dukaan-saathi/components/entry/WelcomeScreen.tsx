@@ -210,7 +210,7 @@ export function WelcomeScreen() {
                     {
                       color: colors.accentStrong,
                       fontFamily: signaturesReady ? 'WelcomeCareScript' : 'serif',
-                      fontStyle: signaturesReady ? 'normal' : 'italic',
+                      fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
                       textShadowColor: `${colors.accentStrong}80`,
                     },
                   ]}
@@ -228,7 +228,7 @@ export function WelcomeScreen() {
                     {
                       color: colors.primary,
                       fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
-                      fontStyle: signaturesReady ? 'normal' : 'italic',
+                      fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
                       fontSize: compactFooter ? 27 : 30,
                       textShadowColor: `${colors.primary}7A`,
                     },
