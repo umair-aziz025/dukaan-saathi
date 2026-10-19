@@ -15,13 +15,18 @@
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "dukaan-saathi-18899.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "dukaan-saathi-18899",
         "EXPO_PUBLIC_FIREBASE_APP_ID": "1:640716425807:web:641c8294912d612eba383a"
-      }
+      },
+      "node": "24.11.1",
+      "pnpm": "10.34.5"
     },
     "production": {
       "environment": "production",
       "android": {
-        "buildType": "app-bundle"
-      }
+        "buildType": "app-bundle",
+        "image": "latest"
+      },
+      "node": "24.11.1",
+      "pnpm": "10.34.5"
     }
   }
 }
