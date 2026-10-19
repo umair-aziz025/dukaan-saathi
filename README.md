@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Expo-EAS%20Build-000020?style=flat-square&logo=expo&logoColor=white" alt="Expo EAS Build"/>
 </p>
 
-[✨ Features](#-features) · [🏗️ Architecture](#-system-architecture) · [🛠️ Tech Stack](#-technology-stack) · [⚡ Quick Start](#-quick-start) · [🚀 Deployment](#-deployment) · [🔐 Security](#-security--privacy)
+[✨ Features](#-features) · [📸 Screenshots](#-product-screenshots) · [🤖 AI Models](#-ai-models--api-usage) · [🤝 Team](#-team--individual-contributions) · [🏗️ Architecture](#-system-architecture) · [⚡ Quick Start](#-quick-start) · [🚀 Deployment](#-deployment) · [🔐 Security](#-security--privacy)
 
 </div>
 
@@ -72,6 +72,46 @@ Shopkeepers can register a store, manage inventory, process pickup orders, and u
 - Apply role-based authorization, validation and rate limiting to backend operations.
 - Record audit events for marketplace activity.
 
+## 📸 Product Screenshots
+
+Screenshots from the Android MVP, grouped by account role. Select any screenshot to open the full-size image. Visible personal contact information, precise coordinates, and pickup codes have been redacted for public sharing. Sample products and marketplace figures may contain test data.
+
+### 🏡 Guest & Onboarding
+
+First-time visitors can explore the product, ask Help Saathi about the app, and register for the appropriate role.
+
+<table>
+<tr><th align="center">Welcome Screen</th><th align="center">Help Saathi — Guest Assistance</th><th align="center">Account Registration</th></tr>
+<tr><td width="33%" align="center"><a href="docs/screenshots/guest-welcome.jpg"><img src="docs/screenshots/guest-welcome.jpg" alt="Welcome Screen" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/guest-help-saathi.jpg"><img src="docs/screenshots/guest-help-saathi.jpg" alt="Help Saathi — Guest Assistance" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/guest-signup.jpg"><img src="docs/screenshots/guest-signup.jpg" alt="Account Registration" width="100%" /></a></td></tr>
+</table>
+
+### 🛒 Customer Experience
+
+Discover available items from local shops, review catalog prices, and manage pickup orders.
+
+<table>
+<tr><th align="center">Nearby Shopping &amp; AI Saathi</th><th align="center">Nearby Product Listings</th><th align="center">Orders &amp; Pickup Code</th></tr>
+<tr><td width="33%" align="center"><a href="docs/screenshots/customer-home.jpg"><img src="docs/screenshots/customer-home.jpg" alt="Nearby Shopping &amp; AI Saathi" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/customer-catalog.jpg"><img src="docs/screenshots/customer-catalog.jpg" alt="Nearby Product Listings" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/customer-pickup-orders.jpg"><img src="docs/screenshots/customer-pickup-orders.jpg" alt="Orders &amp; Pickup Code" width="100%" /></a></td></tr>
+</table>
+
+### 🏪 Merchant Experience
+
+Use multilingual inventory instructions, edit shop details, and track order notifications.
+
+<table>
+<tr><th align="center">AI Inventory Proposal &amp; Confirmation</th><th align="center">Shop Profile &amp; Location</th><th align="center">Merchant Order Notifications</th></tr>
+<tr><td width="33%" align="center"><a href="docs/screenshots/merchant-inventory-ai.jpg"><img src="docs/screenshots/merchant-inventory-ai.jpg" alt="AI Inventory Proposal &amp; Confirmation" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/merchant-shop-details.jpg"><img src="docs/screenshots/merchant-shop-details.jpg" alt="Shop Profile &amp; Location" width="100%" /></a></td><td width="33%" align="center"><a href="docs/screenshots/merchant-notifications.jpg"><img src="docs/screenshots/merchant-notifications.jpg" alt="Merchant Order Notifications" width="100%" /></a></td></tr>
+</table>
+
+### 🛡️ Admin Experience
+
+Review marketplace activity, inspect pending shops, and filter order records.
+
+<table>
+<tr><th align="center">Admin Dashboard Overview</th><th align="center">Shop Approvals &amp; Order Filters</th></tr>
+<tr><td width="50%" align="center"><a href="docs/screenshots/admin-overview.jpg"><img src="docs/screenshots/admin-overview.jpg" alt="Admin Dashboard Overview" width="100%" /></a></td><td width="50%" align="center"><a href="docs/screenshots/admin-shop-review.jpg"><img src="docs/screenshots/admin-shop-review.jpg" alt="Shop Approvals &amp; Order Filters" width="100%" /></a></td></tr>
+</table>
+
 ## 👥 User Roles & Permissions
 
 | Role | Main capabilities |
@@ -102,6 +142,26 @@ The model is **not** authorized to invent product IDs or place an order automati
 6. Only pressing **Confirm** sends the corresponding authenticated product mutation; **Cancel** leaves inventory unchanged.
 
 **Important:** If a required detail is unclear, the assistant should ask for clarification rather than inventing an amount or product match.
+
+## 🧠 AI Models & API Usage
+
+The backend uses **server-side AI API calls**, with a **Gemini-first, Groq-fallback** strategy when a configured provider fails, times out, or returns an invalid structured response. Model responses are validated against Zod schemas and the current Firestore catalog/inventory. All model and API identifiers below are **defaults in `artifacts/api-server/src/lib/ai-providers.ts`**; deployment environment variables can override them.
+
+| Provider / model | Model identifier | Role in Dukaan Saathi | API / server-side configuration |
+| --- | --- | --- | --- |
+| **Google Gemini — Gemini 3.8 Flash** | `gemini-3.8-flash` | Primary natural-language interpretation, catalog-grounded customer product suggestions, merchant inventory proposals, and multimodal audio transcription. | Google Gemini `generateContent` REST API; `GEMINI_API_KEY`, optional `GEMINI_CHAT_MODEL` / `GEMINI_TRANSCRIPTION_MODEL` / `GEMINI_MODEL`. |
+| **Groq — GPT OSS 20B** | `openai/gpt-oss-20b` | Fallback for structured shopping and merchant inventory responses when Gemini cannot return a usable result. | Groq chat completions API; `GROQ_API_KEY`, optional `GROQ_CHAT_MODEL`. |
+| **Groq — Whisper Large V3 Turbo** | `whisper-large-v3-turbo` | Speech-to-text fallback for English, Urdu, and Roman Urdu customer shopping and merchant inventory voice notes. | Groq audio transcriptions API; `GROQ_API_KEY`, optional `GROQ_TRANSCRIPTION_MODEL`. |
+
+### 🔌 API Endpoints & AI Workflow
+
+1. **`POST /api/dukaan/assistant` — Customer AI:** The app sends a request, coordinates, and optional brief chat history; the server provides a bounded nearby catalog. AI returns `reply`, `productIds` and `needsClarification`. The API validates product IDs against the provided catalog and returns the matching real products. **AI never places an order.**
+2. **`POST /api/dukaan/merchant-assistant` — Merchant AI:** An approved merchant supplies a natural-language instruction. The model sees existing inventory and proposes one of `create`, `update`, `delete`, or `clarify`, with a validated product preview. **Only explicit merchant confirmation triggers the product mutation.**
+3. **`POST /api/dukaan/transcribe` — Voice notes:** The authenticated user's recorded audio is sent to the backend. Gemini is attempted first; Groq Whisper acts as a fallback. The returned transcript is editable before submission to the appropriate assistant.
+
+**Safety and control:** AI API keys remain on the backend; Firebase ID tokens authenticate requests; Zod validation, role checks, approved-shop checks, and rate limiting protect assistant routes. The **Help Saathi** popup is a separate, deterministic on-device guidance assistant—not a generative model or a live user-data agent.
+
+**Provider note:** The codebase also contains an **optional xAI text-provider integration** if `XAI_API_KEY` is configured. It is not assumed to be enabled in the deployed hackathon demo. The three models in the table are the primary documented Gemini/Groq defaults, not a guarantee of the runtime configuration or provider uptime.
 
 ## 🏗️ System Architecture
 
@@ -196,6 +256,7 @@ dukaan-saathi/
 │   ├── api-zod/                    # Generated schemas
 │   └── db/                         # Firestore access / transactions
 ├── scripts/                        # Workspace maintenance helpers
+├── docs/screenshots/                # Redacted project screenshots by user role
 ├── docs/
 │   ├── firestore-setup.md
 │   └── heroku-namecheap-expo.md
@@ -381,6 +442,33 @@ These are **implementation statuses**, not claims that every third-party integra
 - 🧾 [API specification](lib/api-spec/openapi.yaml)
 - 🛡️ [Firestore rules](firestore.rules)
 - 📦 [Expo Builds](https://expo.dev/accounts/umair6172/projects/dukaan-saathi/builds)
+- 📸 [Product screenshots](#-product-screenshots)
+- 🧠 [AI model identifiers and API usage](#-ai-models--api-usage)
+- 🤝 [Team roles and individual contributions](#-team--individual-contributions)
+
+## 🤝 Team & Individual Contributions
+
+### 👥 Team Members and Roles
+
+| Team member | Role | Primary responsibilities |
+| --- | --- | --- |
+| **Umair Aziz** | **Team Lead & Full-Stack Developer** | Project planning, technical architecture, AI services, mobile and backend integration, deployment coordination, and GitHub repository management. |
+| **Soban Waheed** | **Frontend, AI & Firebase Developer** | Project planning, frontend and user experience, AI services, Firebase integration, customer-facing interfaces, backend integration, and mobile usability testing. |
+| **Muhammad Ahsan Ali** | **Merchant Workflows, UI/UX & Quality Assurance** | Merchant inventory and order workflows, responsive design, shopping experience, feature testing, validation, and documentation. |
+
+### 🧩 Individual Team Contributions
+
+**Umair Aziz — Team Lead & Full-Stack Development**
+
+Led project planning and designed the overall technical architecture of Dukaan Saathi. Worked on AI service integration, mobile and backend connectivity, cloud deployment, and coordination of the development process. Managed the GitHub repository, version control, and technical integration between application components.
+
+**Soban Waheed — Frontend, AI & Firebase Development**
+
+Contributed to project planning, frontend development, and user experience design. Worked on AI service integration, Firebase functionality, customer-facing interfaces, and communication between the application and backend. Helped improve mobile usability through interface refinements and testing.
+
+**Muhammad Ahsan Ali — Merchant Workflows, Responsive Design & Quality Assurance**
+
+Contributed to the merchant inventory and order-management workflows. Worked on responsive interface design and the customer shopping experience. Assisted with feature testing, validation of application workflows, identifying usability issues, and preparing project documentation.
 
 ## 🤝 Contributing
 
@@ -388,7 +476,7 @@ Authorized collaborators can open a feature branch, keep keys and secrets out of
 
 ## 📬 Maintainer
 
-Developed and maintained by **[umair-aziz025](https://github.com/umair-aziz025)**. Use the repository's [Issues](https://github.com/umair-aziz025/dukaan-saathi/issues) page for technical feedback when enabled.
+Developed by **Umair Aziz, Soban Waheed, and Muhammad Ahsan Ali** for the **NYLP AI Hackathon 2026**. Project lead and repository maintainer: **[Umair Aziz](https://github.com/umair-aziz025)**. For the role breakdown, see [Team & Individual Contributions](#-team--individual-contributions). Use the repository's [Issues](https://github.com/umair-aziz025/dukaan-saathi/issues) page for technical feedback when enabled.
 
 ---
 
