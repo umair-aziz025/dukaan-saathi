@@ -133,6 +133,12 @@ function shopAnswer(role: HelpRole): string {
   }
 }
 
+function shopSettingsAnswer(role: HelpRole): string {
+  if (role === 'merchant') return 'Tap the profile icon at the top of the app, then find Shop details. Edit your shop name or public address, or tap Share location again to update the map pin. Tap Save shop details to apply the changes. This does not automatically change your shop approval status.';
+  if (role === 'admin') return 'Shop owners update their own shop name, public address and location through Profile → Shop details. Admin shop approval is handled separately in Admin → Overview.';
+  return 'Only the registered shop owner can update their own shop details from Profile after signing in. Help Saathi cannot change a shop listing.';
+}
+
 function inventoryAnswer(role: HelpRole): string {
   switch (role) {
     case 'merchant':
@@ -144,6 +150,13 @@ function inventoryAnswer(role: HelpRole): string {
     default:
       return 'Approved merchants can add and update products, PKR prices and stock in My shop, manually or using the AI preview-and-confirm assistant. Customers can browse listed products in Shop.';
   }
+}
+
+function orderPlacementAnswer(role: HelpRole): string {
+  if (role === 'customer') return 'Open Shop and share your location, browse or ask the shopping assistant for items, then tap Add on the products you want. Your basket can contain items from one shop at a time. Tap Review basket, check quantities and total price, and choose Confirm pickup order. Payment is made at the shop; track the order under Orders.';
+  if (role === 'merchant') return 'Customers place pickup orders from one approved shop. As a merchant, open Orders to accept incoming orders, mark items ready, and complete pickup with the customer’s six-digit code.';
+  if (role === 'admin') return 'Customers create pickup orders from Shop. Admins can inspect order activity in Admin → Overview and Orders. This help guide cannot place an order.';
+  return 'Sign up or log in as a Customer, open Shop, add items from one nearby approved shop to a basket, review the total, and confirm a pay-on-pickup order. You pay at the shop.';
 }
 
 function orderAnswer(role: HelpRole): string {
@@ -238,6 +251,10 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   if (match(text, /\b(?:verify|verification|confirm)\b.*\bemail\b|\bemail\b.*\b(?:verify|verification)\b|verification link|verify my account|email verify|تصدیق/i)) {
     return verificationAnswer();
   }
+  // Registering a store is separate from creating a user account.
+  if (match(text, /\b(?:register|list|apply for|create|set up)\b.*\b(?:my |a |the )?(?:shop|store|dukaan)\b|shop registration/i)) {
+    return shopAnswer(role);
+  }
   if (match(text, /\b(?:sign\s?up|signup|register|registration|create\s+(?:a\s+|an\s+|my\s+|new\s+)?account|join the app)\b|account ban|naya account|رجسٹر|سائن اپ|اکاؤنٹ بن/i)) {
     return signupAnswer();
   }
@@ -258,6 +275,9 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   // Concrete operations, ordered from specific to general to avoid collisions.
   if (match(text, /\b(?:admin|administrator)\b/i) && role !== 'admin') return restrictedAdminAnswer(role);
 
+  if (match(text, /\b(?:change|edit|update)\b.*\b(?:shop|store|dukaan)\b.*\b(?:details|name|address|location|pin)\b|\b(?:shop|store) (?:details|name|address|location)\b/i)) {
+    return shopSettingsAnswer(role);
+  }
   if (match(text, /\b(?:profile changes?|change (?:my |the )?(?:name|phone|mobile|details|email)|edit (?:my )?profile|update (?:my )?(?:name|phone|profile)|personal details)\b/i)) {
     return profileAnswer(role);
   }
@@ -301,20 +321,24 @@ export function answerHelpQuestion(role: HelpRole, question: string): string {
   if (match(text, /\b(?:inventory|stock|change (?:a |my |the )?price|product (?:management|listings?)|add (?:a |new )?product|edit (?:a )?product|remove (?:a )?product|manage products?|update stock|prepare change)\b/i)) {
     return inventoryAnswer(role);
   }
-  if (match(text, /\b(?:how do i order|place (?:an? |my )?order|make (?:an? |my )?order|order groceries|order status|orders?|order history|check orders?)\b/i)) {
+  if (match(text, /\b(?:place|make|create|submit|buy)\b.*\b(?:order|groceries|grocery|items)\b|\b(?:how do i order|order groceries|checkout|review basket|shopping basket|cart)\b/i)) {
+    return orderPlacementAnswer(role);
+  }
+  if (match(text, /\b(?:order status|orders?|order history|check orders?|incoming orders?)\b/i)) {
     return orderAnswer(role);
   }
   if (match(text, /\b(?:pickup|pick up|collect|collection|basket|cart|checkout)\b/i)) {
     return pickupAnswer(role);
   }
-  if (match(text, /\b(?:shop|shops|dukaan|merchant|seller|owner|store|apply|approval|approved|search|browse|catalog|catalogue|find products?|list my shop|shop registration)\b/i)) {
-    return shopAnswer(role);
-  }
   if (match(text, /\b(?:what next|next step|what should i do|what do i do|where do i start|getting started|how to start|agla kya)\b/i)) {
     return nextStepAnswer(role);
   }
-  if (match(text, /\b(?:about this app|what is dukaan saathi|how does dukaan saathi work|what does dukaan saathi do|how (?:does|do) (?:the |this )?app work|how to use (?:the |this )?app|how does it work)\b/i)) {
+  // General app overviews must come before keyword matches for "dukaan"/"shop".
+  if (match(text, /\b(?:about this app|what is dukaan saathi|how does dukaan saathi work|what does dukaan saathi do|how (?:does|do) (?:the |this )?app work|what (?:does|can) (?:the |this )?app do|how to use (?:the |this )?app|how does it work)\b/i)) {
     return overviewAnswer(role);
+  }
+  if (match(text, /\b(?:shop|shops|dukaan|merchant|seller|owner|store|apply|approval|approved|search|browse|catalog|catalogue|find products?|list my shop|shop registration)\b/i)) {
+    return shopAnswer(role);
   }
   if (match(text, /\b(?:account|my profile|account details)\b/i)) return accountAnswer(role);
   if (role === 'admin' && match(text, /\b(?:overview|dashboard|review)\b/i)) return adminAnswer(role, 'overview');
