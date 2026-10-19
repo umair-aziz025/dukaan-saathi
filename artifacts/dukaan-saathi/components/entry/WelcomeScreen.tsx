@@ -277,5 +277,5 @@ const styles = StyleSheet.create({
   footerSocialLink: { flex: 1, minWidth: 0, minHeight: 64, borderWidth: 1, borderRadius: 15, paddingVertical: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', gap: 5 },
   footerSocialLabel: { fontSize: 11, fontWeight: '700' },
   footerLinkError: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
-  footerCopyright: { textAlign: 'center', fontSize: 10, lineHeight: 16 },
+  footerCopyright: { textAlign: 'center', fontSize: 10, lineHeight: 16, paddingRight: Platform.OS === 'web' ? 0 : 66 },
 });
