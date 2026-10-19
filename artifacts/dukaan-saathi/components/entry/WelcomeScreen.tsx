@@ -186,27 +186,27 @@ export function WelcomeScreen() {
           <Text style={[styles.trustFoot, { color: colors.mutedForeground }]}>
             A friendly way to shop local, one basket at a time.
           </Text>
-          <View style={styles.footerSignatureRow} testID="welcome-signature-line">
-            <Text style={[styles.footerPlainWord, { color: colors.foreground }]}>by</Text>
+          <View style={styles.footerSignatureRow}>
             <Text
-              style={[
-                styles.footerNameSignature,
-                {
-                  fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
-                  fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
-                  fontSize: screenWidth < 390 ? 21 : 23,
-                  color: colors.primary,
-                  textShadowColor: `${colors.primary}45`,
-                },
-              ]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.65}
-              accessibilityLabel="Umair, Soban, Ahsan"
+              style={[styles.footerSignatureText, { color: colors.foreground }]}
+              testID="welcome-signature-line"
+              accessibilityLabel="by Umair, Soban, Ahsan, with love"
             >
-              Umair, Soban, Ahsan
+              <Text style={styles.footerPlainWord}>by </Text>
+              <Text
+                style={[
+                  styles.footerNameSignature,
+                  {
+                    fontFamily: signaturesReady ? 'WelcomeNameScript' : 'serif',
+                    fontStyle: signaturesReady ? ('normal' as const) : ('italic' as const),
+                    fontSize: screenWidth < 390 ? 21 : 23,
+                    color: colors.primary,
+                    textShadowColor: `${colors.primary}45`,
+                  },
+                ]}
+              >Umair, Soban, Ahsan</Text>
+              <Text style={[styles.footerHeartGlyph, { color: colors.primary }]}> ♡</Text>
             </Text>
-            <Feather name="heart" size={17} color={colors.primary} accessibilityLabel="Love" />
           </View>
           <View style={styles.footerSocialRow} testID="welcome-footer-social-links">
             {socialLinks.map((social) => (
@@ -279,13 +279,18 @@ const styles = StyleSheet.create({
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
   welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 9, gap: 4, marginTop: 'auto' },
   trustFoot: { textAlign: 'center', fontSize: 9, lineHeight: 13, marginBottom: 0 },
-  footerSignatureRow: { width: '100%', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: 5 },
-  footerPlainWord: { flexShrink: 0, fontSize: 11, fontWeight: '600' },
+  footerSignatureRow: { width: '100%', alignItems: 'center', justifyContent: 'center' },
+  // Inline text wraps naturally rather than truncating the last person's name.
+  footerSignatureText: {
+    width: '100%', textAlign: 'center', paddingHorizontal: 8,
+    fontSize: 11, lineHeight: 39, includeFontPadding: true,
+  },
+  footerPlainWord: { fontSize: 11, fontWeight: '600' },
   footerNameSignature: {
-    flexShrink: 1, minWidth: 0, maxWidth: '100%', lineHeight: 36,
-    paddingHorizontal: 5, includeFontPadding: true,
+    includeFontPadding: true,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6,
   },
+  footerHeartGlyph: { fontSize: 18, fontWeight: '400' },
   // The small icon group is centered within the footer, away from the right-edge help button.
   footerSocialRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   footerMiniSocial: {
