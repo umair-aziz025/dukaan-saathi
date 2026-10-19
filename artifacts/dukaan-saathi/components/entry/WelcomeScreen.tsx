@@ -111,7 +111,7 @@ export function WelcomeScreen() {
           styles.content,
           {
             paddingTop: Platform.OS === 'web' ? 67 : Math.max(insets.top ? 4 : 22, 18),
-            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 84,
+            paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 24 : 12) + 12,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -182,11 +182,12 @@ export function WelcomeScreen() {
               <Feather name="heart" size={17} color={colors.primary} />
             </View>
             <View style={styles.footerAttributionText}>
-              <Text style={[styles.footerEyebrow, { color: colors.accentStrong }]}>
-                CRAFTED WITH CARE
-              </Text>
+              <View style={styles.footerCareRow}>
+                <Text style={[styles.footerEyebrow, { color: colors.accentStrong }]}>CRAFTED WITH</Text>
+                <Text style={[styles.footerCareSignature, { color: colors.accentStrong }]}>Care</Text>
+              </View>
               <Text style={[styles.footerCreator, { color: colors.foreground }]}>
-                Created by Umair Aziz
+                Created by <Text style={[styles.footerNameSignature, { color: colors.primary }]}>Umair Aziz</Text>
               </Text>
             </View>
           </View>
@@ -231,7 +232,7 @@ export function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  content: { width: '100%', maxWidth: 540, alignSelf: 'center', paddingHorizontal: 22, gap: 20 },
+  content: { flexGrow: 1, width: '100%', maxWidth: 540, alignSelf: 'center', paddingHorizontal: 22, gap: 20 },
   topline: { minHeight: 54, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   languagePill: { flexDirection: 'row', alignItems: 'center', gap: 7, borderWidth: 1, borderRadius: 30, paddingHorizontal: 11, paddingVertical: 8 },
   languageDot: { width: 6, height: 6, borderRadius: 3 },
@@ -262,13 +263,16 @@ const styles = StyleSheet.create({
   primaryButtonText: { fontSize: 15, fontWeight: '700' },
   secondaryButton: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   secondaryButtonText: { fontSize: 14, fontWeight: '700' },
-  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 17, gap: 15, marginTop: 4 },
+  welcomeFooter: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 17, gap: 13, marginTop: 'auto' },
   trustFoot: { textAlign: 'center', fontSize: 11, lineHeight: 17 },
   footerAttribution: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   footerAttributionIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  footerAttributionText: { gap: 3 },
+  footerAttributionText: { gap: 2, flexShrink: 1 },
+  footerCareRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 5 },
   footerEyebrow: { fontSize: 9, fontWeight: '800', letterSpacing: 1.2 },
-  footerCreator: { fontSize: 13, fontWeight: '700' },
+  footerCareSignature: { fontFamily: Platform.select({ ios: 'Snell Roundhand', default: 'cursive' }), fontSize: 21, lineHeight: 28 },
+  footerCreator: { fontSize: 12, lineHeight: 30, fontWeight: '600' },
+  footerNameSignature: { fontFamily: Platform.select({ ios: 'Snell Roundhand', default: 'cursive' }), fontSize: 24, lineHeight: 30, fontWeight: '400' },
   footerSocialRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
   footerSocialLink: { flex: 1, minWidth: 0, minHeight: 64, borderWidth: 1, borderRadius: 15, paddingVertical: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', gap: 5 },
   footerSocialLabel: { fontSize: 11, fontWeight: '700' },
