@@ -1,0 +1,60 @@
+name: Publish iOS Simulator Preview Release
+
+# Only this workflow file addition/update triggers publication automatically.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-ios-simulator.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-ios-simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and validate successful Expo iOS simulator build
+        env:
+          EXPO_ARCHIVE_URL: https://expo.dev/artifacts/eas/UoK_4Tlb2sLAbGxy3nTMDn37qA2W-M8gom3rsvedQ3g.tar.gz
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 3 "$EXPO_ARCHIVE_URL" -o Dukaan-Saathi-1.0.0-ios-simulator.tar.gz
+          test -s Dukaan-Saathi-1.0.0-ios-simulator.tar.gz
+          tar -tzf Dukaan-Saathi-1.0.0-ios-simulator.tar.gz | head -n 15 || true
+          tar -tzf Dukaan-Saathi-1.0.0-ios-simulator.tar.gz | grep -q '\.app/' || {
+            echo "Archive did not contain an iOS simulator .app directory" >&2
+            exit 1
+          }
+
+      - name: Create or update GitHub pre-release and attach binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > RELEASE_NOTES.md <<'NOTES'
+          # Dukaan Saathi — iOS Simulator Preview
+
+          Team WadiNova's first successful **iOS simulator** build of Dukaan Saathi (Expo SDK 57 / React Native).
+
+          **Includes:** Customer shopping and pickup orders; multilingual AI product discovery; merchant inventory assistance with confirmation; admin shop review and marketplace management.
+
+          **Compatibility:** iOS **Simulator only**. This is an unsigned simulator `.app` archive in `.tar.gz` format. It is **not** an iPhone-installable `.ipa`, cannot be installed directly on a physical device, and is not a TestFlight or App Store release.
+
+          **Verification:** The cloud iOS build passed. Functional testing on an iOS simulator is still pending.
+
+          - [Successful Expo build archive](https://expo.dev/artifacts/eas/UoK_4Tlb2sLAbGxy3nTMDn37qA2W-M8gom3rsvedQ3g.tar.gz)
+          - [Source revision used for the iOS simulator build](https://github.com/umair-aziz025/dukaan-saathi/commit/3831d7470b86143dbed1804f2505bfd74d352063)
+
+          The existing Android release and all Android build configuration remain unchanged.
+          NOTES
+
+          tag="v1.0.0-ios-simulator.1"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "Dukaan-Saathi-1.0.0-ios-simulator.tar.gz" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$tag" --title "Dukaan Saathi — iOS Simulator Preview" --notes-file RELEASE_NOTES.md --prerelease --latest=false --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" "Dukaan-Saathi-1.0.0-ios-simulator.tar.gz" --repo "$GITHUB_REPOSITORY" --target 3831d7470b86143dbed1804f2505bfd74d352063 --title "Dukaan Saathi — iOS Simulator Preview" --notes-file RELEASE_NOTES.md --prerelease --latest=false
+          fi
