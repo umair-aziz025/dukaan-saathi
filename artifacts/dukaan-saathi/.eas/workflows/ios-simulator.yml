@@ -1,0 +1,17 @@
+name: Build Dukaan Saathi iOS Simulator
+
+# Run only when this workflow file changes, not on every app commit.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - artifacts/dukaan-saathi/.eas/workflows/ios-simulator.yml
+
+jobs:
+  ios_simulator:
+    name: Build iOS simulator app (no Apple credentials)
+    type: build
+    params:
+      platform: ios
+      profile: ios-simulator
