@@ -9,6 +9,7 @@
     "scheme": "dukaan-saathi",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.dukaansaathi.app",
       "supportsTablet": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Dukaan Saathi uses your location to find nearby shops and show directions.",
