@@ -32,7 +32,8 @@
       "distribution": "internal",
       "environment": "preview",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "image": "latest"
       },
       "node": "24.11.1",
       "pnpm": "10.34.5"
