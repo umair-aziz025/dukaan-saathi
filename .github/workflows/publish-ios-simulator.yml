@@ -23,8 +23,9 @@ jobs:
           set -euo pipefail
           curl --fail --location --retry 3 --retry-delay 3 "$EXPO_ARCHIVE_URL" -o Dukaan-Saathi-1.0.0-ios-simulator.tar.gz
           test -s Dukaan-Saathi-1.0.0-ios-simulator.tar.gz
-          tar -tzf Dukaan-Saathi-1.0.0-ios-simulator.tar.gz | head -n 15 || true
-          tar -tzf Dukaan-Saathi-1.0.0-ios-simulator.tar.gz | grep -q '\.app/' || {
+          tar -tzf Dukaan-Saathi-1.0.0-ios-simulator.tar.gz > archive-contents.txt
+          head -n 15 archive-contents.txt
+          grep -q '\.app/' archive-contents.txt || {
             echo "Archive did not contain an iOS simulator .app directory" >&2
             exit 1
           }
