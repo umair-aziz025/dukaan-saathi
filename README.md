@@ -385,7 +385,7 @@ To request another free iOS simulator build from the `artifacts/dukaan-saathi` d
 eas build --platform ios --profile ios-simulator
 ~~~
 
-A separate [GitHub Actions release-publishing workflow](.github/workflows/publish-ios-simulator.yml) is available for when GitHub Actions runners are enabled; it does not alter Android builds. Physical-device or App Store distribution requires Apple-managed signing and other store requirements. A completed build alone is not an App Store publication.
+The iOS simulator archive is linked directly above. GitHub Actions-based release automation is intentionally not configured because repository Actions cannot run with the current billing restriction. Physical-device or App Store distribution requires Apple-managed signing and other store requirements. A completed build alone is not an App Store publication.
 
 ## 🔐 Security & Privacy
 
