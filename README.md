@@ -369,9 +369,23 @@ GitHub-triggered builds must target the Expo project subdirectory. The Android p
 
 For Android remote push, Expo needs the Firebase Android client file and private **FCM V1 service-account credentials** configured in Expo. The private key is **not** the same as `google-services.json`.
 
-### 🍎 iOS and App Stores
+### 🍎 iOS Simulator build (no Apple Developer membership)
 
-Expo supports iOS builds, but this repository does **not yet configure an iOS bundle identifier and Apple signing credentials**. Apple App Store distribution and Android Play Store publication require separate store preparation, credentials, reviews and approvals. A completed build alone does not mean the app is publicly published.
+**iOS simulator compilation: successful.** The Expo GitHub integration compiled an unsigned iOS Simulator app using the `ios-simulator` EAS build profile (with `ios.simulator: true`). The iOS bundle identifier is `com.dukaansaathi.app`.
+
+- **[Download the verified successful Expo build artifact (.tar.gz)](https://expo.dev/artifacts/eas/UoK_4Tlb2sLAbGxy3nTMDn37qA2W-M8gom3rsvedQ3g.tar.gz)**
+- [Expo iOS simulator build workflow](https://expo.dev/accounts/umair6172/projects/dukaan-saathi/workflows/01a15a53-031a-7f59-9a2f-ab9449234c6a)
+- [Source revision for this build](https://github.com/umair-aziz025/dukaan-saathi/commit/3831d7470b86143dbed1804f2505bfd74d352063)
+
+The archive contains a simulator-only `.app` bundle, **not** a signed `.ipa`. It cannot be installed on a physical iPhone or distributed through TestFlight or the App Store. The cloud compilation succeeded; **functional iOS simulator testing is still pending**.
+
+To request another free iOS simulator build from the `artifacts/dukaan-saathi` directory:
+
+~~~bash
+eas build --platform ios --profile ios-simulator
+~~~
+
+A separate [GitHub Actions release-publishing workflow](.github/workflows/publish-ios-simulator.yml) is available for when GitHub Actions runners are enabled; it does not alter Android builds. Physical-device or App Store distribution requires Apple-managed signing and other store requirements. A completed build alone is not an App Store publication.
 
 ## 🔐 Security & Privacy
 
