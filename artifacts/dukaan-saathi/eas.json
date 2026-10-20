@@ -27,6 +27,15 @@
       },
       "node": "24.11.1",
       "pnpm": "10.34.5"
+    },
+    "ios-simulator": {
+      "distribution": "internal",
+      "environment": "preview",
+      "ios": {
+        "simulator": true
+      },
+      "node": "24.11.1",
+      "pnpm": "10.34.5"
     }
   }
 }
